@@ -1,0 +1,36 @@
+{
+    "$schema": "https://aka.ms/powerapps-schemas/datasources.json",
+    "Provider": "SharePoint",
+    "ConnectionId": "__SP_CONNECTION_ID__",
+    "SiteUrl": "__ENV_TENANT_URL__",
+    "DataSources": [
+      {
+        "Name": "Purchase Requests",
+        "ListId": "__ENV_LIST_REQUESTS_ID__",
+        "DisplayName": "APH Purchase Requests",
+        "Delegable": true,
+        "IndexedColumns": ["ID", "Phase", "CurrentApproverEmails"]
+      },
+      {
+        "Name": "Funding Lines",
+        "ListId": "__ENV_LIST_FUNDINGLINES_ID__",
+        "DisplayName": "APH Funding Lines",
+        "Delegable": true,
+        "IndexedColumns": ["ID", "RequestID"]
+      },
+      {
+        "Name": "Approvals",
+        "ListId": "__ENV_LIST_APPROVALS_ID__",
+        "DisplayName": "APH Approvals",
+        "Delegable": true,
+        "IndexedColumns": ["ID", "RequestID", "Approver"]
+      },
+      {
+        "Name": "Purchasing Admins",
+        "ListId": "__ENV_LIST_ADMINS_ID__",
+        "DisplayName": "APH Purchasing Admins",
+        "Delegable": true,
+        "IndexedColumns": ["User"]
+      }
+    ]
+  }

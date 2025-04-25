@@ -1,0 +1,58 @@
+{
+  "FormatVersion": "0.24",
+
+  "Header": {
+    "DocVersion": "1.326",
+    "MinVersionToLoad": "1.326",
+    "MSAppStructureVersion": "2.0"
+  },
+
+  "Id": "__APP_GUID__",
+  "Name": "APH Purchasing Power App",
+  "Description": "Modernized purchasing workflow for Austin Public Health.",
+  "Author": "__AUTHOR_OBJECT_ID__",
+  "CreatedTime": "2025-04-21T00:00:00Z",
+  "ModifiedTime": "2025-04-22T00:00:00Z",
+  "PowerFxVersion": "1.0",
+  "Language": "en-US",
+  "DocumentAppType": "Tablet",
+  "DocumentLayoutWidth": 1366,
+  "DocumentLayoutHeight": 768,
+  "DocumentLayoutOrientation": "landscape",
+  "DocumentLayoutScaleToFit": true,
+  "DocumentLayoutMaintainAspectRatio": true,
+  "DocumentLayoutLockOrientation": false,
+
+  "Properties": {
+    "AppCreationSource": "AppFromScratch",
+    "TelemetryDisabled": true
+  },
+
+  "LogoFile": "Assets/APH_Logo.png",
+
+  "RequiredConnections": [
+    {
+      "Provider": "SharePoint",
+      "ConnectionId": "__SP_CONNECTION_ID__",
+      "SiteUrl": "__ENV_TENANT_URL__"
+    }
+  ],
+
+  "PublishInfo": {
+    "AppName": "APH Purchasing",
+    "BackgroundColor": "#005AA0",
+    "IconColor": "RGBA(255,255,255,1)",
+    "LogoFileName": "Assets/APH_Logo.png",
+    "UserLocale": "en-US"
+  },
+
+  "ScreenOrder": [
+    "scrHome",
+    "scrViewPendingRequests",
+    "scrViewMyRequests",
+    "scrRequestForm",
+    "scrAdmin"
+  ],
+
+  "EnvironmentVariableFile": "EnvironmentVariables.json"
+}

@@ -1,0 +1,49 @@
+scrMain:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+  Controls:
+    - cmpHeaderHub:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: "Home"
+    - btnNewRequest:
+        Kind: Button
+        X: 40
+        Y: 96
+        Width: 240
+        Height: 56
+        Text: "New Request"
+        AccessibleLabel: "Create new purchase request"
+        OnSelect: Navigate(scrNewRequest, ScreenTransition.Cover)
+    - btnMyRequests:
+        Kind: Button
+        X: 40
+        Y: 168
+        Width: 240
+        Height: 56
+        Text: "My Requests"
+        AccessibleLabel: "View my requests"
+        OnSelect: Navigate(scrViewMyRequests, ScreenTransition.Cover)
+    - btnPending:
+        Kind: Button
+        X: 40
+        Y: 240
+        Width: 240
+        Height: 56
+        Text: "Pending Approvals"
+        AccessibleLabel: "Pending approvals queue"
+        OnSelect: Navigate(scrViewPendingRequests, ScreenTransition.Cover)
+    - btnAdmin:
+        Kind: Button
+        X: 40
+        Y: 312
+        Width: 240
+        Height: 56
+        Text: "Admin Panel"
+        AccessibleLabel: "Admin utilities"
+        Visible: gblIsAdmin
+        OnSelect: Navigate(scrAdmin, ScreenTransition.Cover)

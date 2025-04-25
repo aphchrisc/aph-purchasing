@@ -1,0 +1,207 @@
+scrViewPendingRequests:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+  Controls:
+    # ---------------------------------------------------------------
+    # Header
+    # ---------------------------------------------------------------
+    - cmpHeaderPending:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: "Pending Approvals"
+
+    - txtSearchPendingRequests:
+        Kind: TextInput
+        X: 24
+        Y: 72
+        Width: 300
+        Height: 40
+        PlaceholderText: "Search by ID, Title, or Requestor..."
+        AccessibleLabel: "Search pending requests by ID, Title, or Requestor"
+        OnChange: Set(varPendingSearchTerm, Self.Text)
+        DelayOutput: true
+    # ---------------------------------------------------------------
+    # Approvals Gallery – shows items awaiting the current user
+    # ---------------------------------------------------------------
+    - galPending:
+        Kind: Gallery
+        X: 24
+        Y: 120 /* Below search */
+        Width: Parent.Width - 48
+        Height: Parent.Height - 144 /* Adjusted for search */
+        TemplateSize: 72
+        LoadingSpinner: LoadingSpinner.Controls
+        LoadingSpinnerColor: Theme.Colors.Primary100
+        AccessibleLabel: "Gallery of requests awaiting my approval"
+        Items: |-
+            SortByColumns(
+                Filter('Purchase Requests',
+                       /* Assumes a 'CurrentApprover' Person column (Allow Multiple) is populated by an external Power Automate flow */
+                       User().Email in CurrentApprover.Email &&
+                       /* Apply search term */
+                       (IsBlank(varPendingSearchTerm) ||
+                        Text(ID) = varPendingSearchTerm || /* Search by ID */
+                        StartsWith(Title, varPendingSearchTerm) || /* Search by Title */
+                        StartsWith(Requestor.DisplayName, varPendingSearchTerm)) /* Search by Requestor */
+                ),
+                "ID", Ascending
+            )
+        Controls:
+          - lblID:
+              Kind: Label
+              X: 0
+              Y: 0
+              Width: 60
+              Height: 72
+              Text: ThisItem.ID
+              FontWeight: FontWeight.SemiBold
+              AccessibleLabel: |-
+                "Request ID " & Text(ThisItem.ID)
+          - lblTitle:
+              Kind: Label
+              X: 72
+              Y: 0
+              Width: 260
+              Height: 72
+              Text: ThisItem.Title
+              AccessibleLabel: |-
+                "Title " & ThisItem.Title
+              Wrap: false
+          - lblRequestor:
+              Kind: Label
+              X: 344
+              Y: 0
+              Width: 200
+              Height: 72
+              Text: ThisItem.Requestor.DisplayName
+              AccessibleLabel: |-
+                "Requestor " & ThisItem.Requestor.DisplayName
+          - lblAmount:
+              Kind: Label
+              X: 556
+              Y: 0
+              Width: 120
+              Height: 72
+              Text: Text(ThisItem.TotalAmount, "$#,###.00")
+              AccessibleLabel: |- /* Corrected format */
+                "Total amount " & Text(ThisItem.TotalAmount, "$#,##0.00")
+          - lblAge:
+              Kind: Label
+              X: 688
+              Y: 0
+              Width: 80
+              Height: 72
+              Text: |-
+                DateDiff(ThisItem.'Created', Today()) & " d"
+              Color: |-
+                DateDiff(ThisItem.'Created', Today()) > 7 ? Theme.Colors.Danger : Theme.Colors.Text
+              AccessibleLabel: |-
+                "Age " & DateDiff(ThisItem.'Created', Today()) & " days"
+          - btnApprove:
+              Kind: Button
+              X: Parent.Width - 164
+              Y: 20
+              Width: 72
+              Height: 32
+              Text: "Approve"
+              AccessibleLabel: '"Approve request " & ThisItem.ID'
+              OnSelect: |-
+                  /* --- Determine Next Phase using colPhaseOrder --- */
+                  UpdateContext({_currentPhaseOrder: LookUp(colPhaseOrder, Phase = ThisItem.Phase).Order});
+                  UpdateContext({_nextPhaseRecord:
+                      LookUp(colPhaseOrder,
+                          Order =
+                              /* Logic to find the *next* valid phase based on flags */
+                              Switch(ThisItem.Phase,
+                                  "Draft",                LookUp(colPhaseOrder, Phase = "Pending Mgr").Order,
+                                  "Pending Mgr",          If(ThisItem.DSRIPFlag, LookUp(colPhaseOrder, Phase = "Pending DSRIP").Order, LookUp(colPhaseOrder, Phase = "Pending Contract").Order),
+                                  "Pending DSRIP",        LookUp(colPhaseOrder, Phase = "Pending Contract").Order,
+                                  "Pending Contract",     LookUp(colPhaseOrder, Phase = "Pending Budget").Order,
+                                  "Pending Budget",       LookUp(colPhaseOrder, Phase = "Pending Purchasing").Order,
+                                  "Pending Purchasing",   LookUp(colPhaseOrder, Phase = "Approved").Order,
+                                  /* Default: stay in current phase if logic incomplete or already approved/denied */
+                                  _currentPhaseOrder
+                              )
+                      )
+                  });
+                  /* --- End Determine Next Phase --- */
+
+                  /* --- Patch Request with Error Handling --- */
+                  IfError(
+                      Patch('Purchase Requests', ThisItem,
+                          {
+                              Phase: _nextPhaseRecord.Phase,
+                              /* Clear the current approver - the external flow should populate based on the new phase */
+                              CurrentApprover: Blank()
+                          }
+                      ),
+                      Notify("Error updating request phase: " & FirstError.Message, NotificationType.Error),
+                      /* If successful, proceed to patch Approvals */
+                      IfError(
+                          Patch('Approvals', Defaults('Approvals'),
+                              { RequestID: ThisItem.ID,
+                                Approver: User().Email,
+                                Decision: "Approved",
+                                Timestamp: Now()
+                              }
+                          ),
+                          Notify("Error logging approval: " & FirstError.Message, NotificationType.Warning), /* Log error but maybe continue */
+                          Notify("Request " & ThisItem.ID & " approved.", NotificationType.Success) /* Success */
+                      )
+                  );
+                  /* --- End Patch Request --- */
+              Color: Theme.Colors.Surface
+              Fill: Theme.Colors.Primary80
+          - btnDeny:
+              Kind: Button
+              X: Parent.Width - 84
+              Y: 20
+              Width: 72
+              Height: 32
+              Text: "Deny"
+              AccessibleLabel: '"Deny request " & ThisItem.ID'
+              OnSelect: |-
+                  /* --- Patch Request with Error Handling --- */
+                  IfError(
+                      Patch('Purchase Requests', ThisItem, { Phase: "Denied", CurrentApprover: Blank() }), /* Also clear approver on deny */
+                      Notify("Error denying request: " & FirstError.Message, NotificationType.Error),
+                      /* If successful, proceed to patch Approvals */
+                      IfError(
+                          Patch('Approvals', Defaults('Approvals'),
+                              { RequestID: ThisItem.ID,
+                                Approver: User().Email,
+                                Decision: "Denied",
+                                Timestamp: Now()
+                              }
+                          ),
+                          Notify("Error logging denial: " & FirstError.Message, NotificationType.Warning), /* Log error but maybe continue */
+                          Notify("Request " & ThisItem.ID & " denied.", NotificationType.Information) /* Success */
+                      )
+                  );
+                  /* --- End Patch Request --- */
+              Color: Theme.Colors.Surface
+              Fill: Theme.Colors.Danger
+
+    # ---------------------------------------------------------------
+    # Empty‑state label when no pending items
+    # ---------------------------------------------------------------
+    - lblEmpty:
+        Kind: Label
+        X: 24
+        Y: 120 /* Below search */
+        Width: Parent.Width - 48
+        Height: 40
+        Text: |-
+            If(galPending.Loading,
+               "Loading pending requests...",
+               If(IsBlank(varPendingSearchTerm),
+                  "No requests require your approval right now.",
+                  "No pending requests match your search."
+               )
+            )
+        Color: Theme.Colors.Text
+        Visible: CountRows(galPending.AllItems) = 0 || galPending.Loading

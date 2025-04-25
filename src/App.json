@@ -1,0 +1,38 @@
+{
+    "$schema": "https://aka.ms/powerapps/schemas/app.v1.json",
+    "AppDisplayName": "APH Purchasing Power App",
+    "AppDescription": "Modern, modular purchasing workflow for Austin Public Health (rewritten 2025).",
+    "CreatedTime": "2025-04-21T00:00:00Z",
+    "ModifiedTime": "2025-04-21T00:00:00Z",
+    "PreferredTheme": {
+      "ThemeFile": "Themes.json",
+      "ThemeId": "APHTheme"
+    },
+    "ScreenOrder": [
+      "scrMain",
+      "scrNewRequest",
+      "scrEditRequest",
+      "scrViewMyRequests",
+      "scrViewPendingRequests",
+      "scrAdmin"
+    ],
+    "ExperimentalFeatures": {
+      "DeclarativeDataverse": false,
+      "DeclarativeDataSources": false,
+      "EnableEnhancedDelegation": false,
+      "EnableYAMLAuthoring": false
+    },
+    "Authoring": {
+      "AutoSave": false,
+      "FormulaBarExpanded": true,
+      "ShowDataSources": true
+    },
+    "Telemetry": {
+      "Enabled": false
+    },
+    "AdvancedSettings": {
+      "ErrorHandlingMode": "Helpful",
+      "EnableDelayedLoad": true
+    }
+  }
+  

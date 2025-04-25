@@ -1,0 +1,134 @@
+scrViewMyRequests:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+  Controls:
+    - cmpHeaderMy:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: "My Requests"
+    - txtSearchMyRequests:
+        Kind: TextInput
+        X: 24
+        Y: 72
+        Width: 300
+        Height: 40
+        PlaceholderText: "Search by ID or Title..."
+        AccessibleLabel: "Search my requests by ID or Title"
+        OnChange: Set(varMyRequestsSearchTerm, Self.Text)
+        DelayOutput: true
+    - galMyRequests:
+        Kind: Gallery
+        X: 24
+        Y: 120  # Below search
+        Width: Parent.Width - 48
+        Height: Parent.Height - 144 # Adjusted for search
+        TemplateSize: 64
+        LoadingSpinner: LoadingSpinner.Controls # Show spinner while loading
+        LoadingSpinnerColor: Theme.Colors.Primary100
+        AccessibleLabel: "Gallery of my purchase requests"
+        Items: |-
+            SortByColumns(
+                Filter('Purchase Requests',
+                       (CreatedBy.Email = User().Email || Requestor.Email = User().Email) &&
+                       /* Apply search term */
+                       (IsBlank(varMyRequestsSearchTerm) ||
+                        Text(ID) = varMyRequestsSearchTerm || /* Search by ID */
+                        StartsWith(Title, varMyRequestsSearchTerm)) /* Search by Title */
+                ),
+                "ID", Descending
+            )
+        Controls:
+          - lblID:
+              Kind: Label
+              X: 0
+              Y: 0
+              Width: 60
+              Height: 64
+              Text: ThisItem.ID
+              FontWeight: FontWeight.SemiBold
+              AccessibleLabel: '"Request ID " & Text(ThisItem.ID)'
+          - lblTitle:
+              Kind: Label
+              X: 72
+              Y: 0
+              Width: 320
+              Height: 64
+              Text: ThisItem.Title
+              AccessibleLabel: '"Title " & ThisItem.Title'
+          - lblAmount:
+              Kind: Label
+              X: 408
+              Y: 0
+              Width: 120
+              Height: 64
+              Text: Text(ThisItem.TotalAmount, "$#,###.00")
+              AccessibleLabel: '"Total amount " & Text(ThisItem.TotalAmount, "$#,##0.00")' /* Corrected format */
+          - conPhaseIndicator: /* Container for better visual grouping */
+              Kind: Container
+              X: 552
+              Y: 16
+              Width: 160
+              Height: 32
+              Layout: Layout.Horizontal
+              AccessibleLabel: '"Current phase " & ThisItem.Phase'
+              Controls:
+                - icoPhase:
+                    Kind: Icon
+                    Icon: |- /* Icon based on phase */
+                        Switch(ThisItem.Phase,
+                            "Draft", Icon.Edit,
+                            "Denied", Icon.Cancel,
+                            "Approved", Icon.Accept,
+                            Icon.Clock /* Default for pending phases */
+                        )
+                    Width: 32
+                    Height: 32
+                    Color: |- /* Color based on phase */
+                        Switch(ThisItem.Phase,
+                            "Draft", Theme.Colors.NeutralPrimary,
+                            "Denied", Theme.Colors.Danger,
+                            "Approved", Theme.Colors.Accent,
+                            Theme.Colors.Primary100 /* Default for pending */
+                        )
+                - lblPhase:
+                    Kind: Label
+                    X: 36
+                    Y: 0
+                    Width: Parent.Width - Self.X
+                    Height: Parent.Height
+                    Text: ThisItem.Phase
+                    VerticalAlign: VerticalAlign.Center
+                    Color: |- /* Color based on phase */
+                        Switch(ThisItem.Phase,
+                            "Draft", Theme.Colors.NeutralPrimary,
+                            "Denied", Theme.Colors.Danger,
+                            "Approved", Theme.Colors.Accent,
+                            Theme.Colors.Primary100 /* Default for pending */
+                        )
+        OnSelect: |-
+            If(
+                ThisItem.Phase = "Draft",
+                Navigate(scrEditRequest, ScreenTransition.Cover, { requestId: ThisItem.ID }),
+                /* Navigate to a new detail screen (to be created) */
+                Navigate(scrViewRequestDetail, ScreenTransition.Cover, { requestId: ThisItem.ID })
+            )
+    - lblEmpty:
+        Kind: Label
+        X: 24
+        Y: 120 /* Below search */
+        Width: Parent.Width - 48
+        Height: 40
+        Text: |-
+            If(galMyRequests.Loading,
+               "Loading requests...",
+               If(IsBlank(varMyRequestsSearchTerm),
+                  "You have no requests yet. Click 'New Request' to start one.",
+                  "No requests match your search."
+               )
+            )
+        Visible: CountRows(galMyRequests.AllItems) = 0 || galMyRequests.Loading
+        Color: Theme.Colors.Text

@@ -1,0 +1,233 @@
+scrViewRequestDetail:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+    OnVisible: |-
+        /* Expecting navigation to supply the record ID */
+        If(!IsBlank(Param("requestId")),
+            Set(varDetailRequest,
+                LookUp('Purchase Requests', ID = Value(Param("requestId")))
+            );
+            ClearCollect(colDetailFundingLines,
+                Filter('Funding Lines', RequestID = Value(Param("requestId")))
+            );
+            /* Potentially load attachments here if needed */
+            /* ClearCollect(colDetailAttachments, LookUp('Purchase Requests', ID = Value(Param("requestId"))).Attachments) */
+        ,
+            /* Handle case where ID is missing */
+            Notify("Error: Request ID not provided.", NotificationType.Error);
+            Navigate(scrViewMyRequests, ScreenTransition.None) /* Or navigate back */
+        )
+  Controls:
+    # ---------------------------------------------------------------
+    # Header
+    # ---------------------------------------------------------------
+    - cmpHeaderDetail:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: ="Request Details - ID " & varDetailRequest.ID
+
+    # ---------------------------------------------------------------
+    # Back Button
+    # ---------------------------------------------------------------
+    - btnBackDetail:
+        Kind: Button
+        X: 24
+        Y: 72
+        Width: 100
+        Height: 40
+        Text: "Back"
+        AccessibleLabel: "Navigate back to previous screen"
+        OnSelect: Back(ScreenTransition.UnCover)
+
+    # ---------------------------------------------------------------
+    # Request Details Section
+    # ---------------------------------------------------------------
+    - lblDetailVendorLabel:
+        Kind: Label
+        X: 24
+        Y: 128
+        Width: 150
+        Height: 32
+        Text: "Vendor:"
+        FontWeight: FontWeight.SemiBold
+    - lblDetailVendorValue:
+        Kind: Label
+        X: 180
+        Y: 128
+        Width: Parent.Width - 204
+        Height: 32
+        Text: =varDetailRequest.Vendor /* Adjust if Vendor is Lookup/Choice */
+        AccessibleLabel: ="Vendor " & varDetailRequest.Vendor
+
+    - lblDetailDescLabel:
+        Kind: Label
+        X: 24
+        Y: 164
+        Width: 150
+        Height: 32
+        Text: "Description:"
+        FontWeight: FontWeight.SemiBold
+    - lblDetailDescValue:
+        Kind: Label
+        X: 180
+        Y: 164
+        Width: Parent.Width - 204
+        Height: 64 /* Allow wrapping */
+        Text: =varDetailRequest.Description
+        VerticalAlign: VerticalAlign.Top
+        AccessibleLabel: ="Description " & varDetailRequest.Description
+
+    - lblDetailShipToLabel:
+        Kind: Label
+        X: 24
+        Y: 232
+        Width: 150
+        Height: 32
+        Text: "Ship To:"
+        FontWeight: FontWeight.SemiBold
+    - lblDetailShipToValue:
+        Kind: Label
+        X: 180
+        Y: 232
+        Width: Parent.Width - 204
+        Height: 32
+        Text: =varDetailRequest.ShipTo
+        AccessibleLabel: ="Ship To " & varDetailRequest.ShipTo
+
+    - lblDetailNeedByLabel:
+        Kind: Label
+        X: 24
+        Y: 268
+        Width: 150
+        Height: 32
+        Text: "Need-By Date:"
+        FontWeight: FontWeight.SemiBold
+    - lblDetailNeedByValue:
+        Kind: Label
+        X: 180
+        Y: 268
+        Width: Parent.Width - 204
+        Height: 32
+        Text: =Text(varDetailRequest.NeedBy, DateTimeFormat.ShortDate)
+        AccessibleLabel: ="Need by date " & Text(varDetailRequest.NeedBy, DateTimeFormat.LongDate)
+
+    - lblDetailFlagsLabel:
+        Kind: Label
+        X: 24
+        Y: 304
+        Width: 150
+        Height: 32
+        Text: "Flags:"
+        FontWeight: FontWeight.SemiBold
+    - lblDetailFlagsValue:
+        Kind: Label
+        X: 180
+        Y: 304
+        Width: Parent.Width - 204
+        Height: 32
+        Text: =Concatenate(If(varDetailRequest.ContractFlag, "Contract Required; ", ""), If(varDetailRequest.DSRIPFlag, "DSRIP Related", ""))
+        AccessibleLabel: ="Flags: " & Concatenate(If(varDetailRequest.ContractFlag, "Contract Required; ", ""), If(varDetailRequest.DSRIPFlag, "DSRIP Related", ""))
+
+    - lblDetailPhaseLabel:
+        Kind: Label
+        X: 24
+        Y: 340
+        Width: 150
+        Height: 32
+        Text: "Current Phase:"
+        FontWeight: FontWeight.SemiBold
+    - lblDetailPhaseValue:
+        Kind: Label
+        X: 180
+        Y: 340
+        Width: Parent.Width - 204
+        Height: 32
+        Text: =varDetailRequest.Phase
+        FontWeight: FontWeight.SemiBold
+        Color: |- /* Color based on phase */
+            Switch(varDetailRequest.Phase,
+                "Draft", Theme.Colors.NeutralPrimary,
+                "Denied", Theme.Colors.Danger,
+                "Approved", Theme.Colors.Accent,
+                Theme.Colors.Primary100 /* Default for pending */
+            )
+        AccessibleLabel: ="Current phase " & varDetailRequest.Phase
+
+    # ---------------------------------------------------------------
+    # Funding Lines Gallery (Read-Only)
+    # ---------------------------------------------------------------
+    - lblFundingLinesHeader:
+        Kind: Label
+        X: 24
+        Y: 388
+        Width: Parent.Width - 48
+        Height: 32
+        Text: "Funding Lines"
+        FontWeight: FontWeight.Bold
+        Size: 14
+    - galDetailFundingLines:
+        Kind: Gallery
+        X: 24
+        Y: 424
+        Width: Parent.Width - 48
+        Height: 150 /* Adjust as needed */
+        TemplateSize: 32
+        Items: colDetailFundingLines
+        AccessibleLabel: "Funding lines for this request"
+        Controls:
+          - lblDetailCostCenter:
+              Kind: Label
+              X: 0
+              Y: 0
+              Width: 220
+              Height: Parent.TemplateHeight
+              Text: =ThisItem.CostCenter
+              AccessibleLabel: ="Cost Center " & ThisItem.CostCenter
+          - lblDetailObjectCode:
+              Kind: Label
+              X: 236
+              Y: 0
+              Width: 160
+              Height: Parent.TemplateHeight
+              Text: =ThisItem.ObjectCode
+              AccessibleLabel: ="Object Code " & ThisItem.ObjectCode
+          - lblDetailAmount:
+              Kind: Label
+              X: 408
+              Y: 0
+              Width: 120
+              Height: Parent.TemplateHeight
+              Text: =Text(ThisItem.Amount, "$#,##0.00")
+              AccessibleLabel: ="Amount " & Text(ThisItem.Amount, "$#,##0.00")
+
+    # ---------------------------------------------------------------
+    # Attachments Viewer (Optional - Placeholder)
+    # ---------------------------------------------------------------
+    /*
+    - lblAttachmentsHeader:
+        Kind: Label
+        X: 24
+        Y: 580
+        Width: Parent.Width - 48
+        Height: 32
+        Text: "Attachments"
+        FontWeight: FontWeight.Bold
+        Size: 14
+    - galAttachments:
+        Kind: Gallery
+        Items: colDetailAttachments // Assuming loaded in OnVisible
+        X: 24
+        Y: 616
+        Width: Parent.Width - 48
+        Height: 100 // Adjust as needed
+        TemplateSize: 40
+        Controls:
+          - lblAttachmentName:
+              Kind: Label
+              Text: ThisItem.Name
+              OnSelect: Launch(ThisItem.Value) // Or ThisItem.AbsoluteUri
+    */

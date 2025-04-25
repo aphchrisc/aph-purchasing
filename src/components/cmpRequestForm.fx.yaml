@@ -1,0 +1,385 @@
+cmpRequestForm:
+  Kind: component
+  CustomProperties:
+    - Name: Mode
+      Type: String   # "New" | "Edit"
+      IsInput: true
+      IsOutput: false
+    - Name: Request
+      Type: Record   # Existing request when editing
+      IsInput: true
+      IsOutput: false
+    - Name: OnCompleted
+      Type: Behavior # Fired after successful submit / save
+      IsInput: false
+      IsOutput: true
+  Properties:
+    Width: Parent.Width
+    Height: Parent.Height
+    OnVisible: |-
+        /* Initialise wizard step & local collections */
+        Set(varStep, 1);
+
+        /* Define steps for progress bar */
+        ClearCollect(colWizardSteps,
+            Table(
+                { Step: 1, Title: "Header Info" },
+                { Step: 2, Title: "Delivery" },
+                { Step: 3, Title: "Funding" },
+                { Step: 4, Title: "Attachments" },
+                { Step: 5, Title: "Review" }
+            )
+        );
+
+        /* Load or reset funding lines */
+        If(
+            Mode = "Edit" && !IsBlank(Request),
+            /* Hydrate form with existing data */
+            Set(varHeader, Request);
+            ClearCollect(colFundingLines,
+                Filter('Funding Lines', RequestID = Request.ID)
+            ),
+            /* New mode: initialize empty funding lines collection */
+            ClearCollect(colFundingLines, Table())
+        );
+  Controls:
+    # -----------------------------------------------------------------
+    # Visual Progress Bar
+    # -----------------------------------------------------------------
+    - galProgressBar:
+        Kind: Gallery
+        Layout: Layout.Horizontal
+        Items: colWizardSteps
+        X: 24
+        Y: 8
+        Width: Parent.Width - 48
+        Height: 40
+        TemplateSize: (Parent.Width - 48) / CountRows(colWizardSteps)
+        ShowScrollbar: false
+        AccessibleLabel: "Request progress indicator"
+        Controls:
+          - rectStepBG:
+              Kind: Rectangle
+              X: 0
+              Y: 0
+              Width: Parent.TemplateWidth - 4 /* Gap between steps */
+              Height: 8
+              Fill: If(ThisItem.Step < varStep, Theme.Colors.Primary80, If(ThisItem.Step = varStep, Theme.Colors.Primary100, Theme.Colors.NeutralLight))
+              RadiusTopLeft: 4
+              RadiusTopRight: 4
+              RadiusBottomLeft: 4
+              RadiusBottomRight: 4
+          - lblStepTitle:
+              Kind: Label
+              X: 0
+              Y: 12
+              Width: Parent.TemplateWidth - 4
+              Height: 24
+              Text: ThisItem.Title
+              Size: 10
+              Align: Align.Center
+              FontWeight: If(ThisItem.Step = varStep, FontWeight.Bold, FontWeight.Normal)
+              Color: If(ThisItem.Step <= varStep, Theme.Colors.Primary100, Theme.Colors.NeutralPrimary)
+              AccessibleLabel: '"Step " & ThisItem.Step & ": " & ThisItem.Title & If(ThisItem.Step = varStep, " (Current Step)", If(ThisItem.Step < varStep, " (Completed)", ""))'
+
+    # -----------------------------------------------------------------
+    # Wizard STEP 1 – Header info
+    # -----------------------------------------------------------------
+    - grpStep1:
+        Kind: Group
+        Visible: varStep = 1
+        Controls:
+          - lblVendor:
+              Kind: Label
+              Text: "Vendor"
+              X: 24
+              Y: 64
+              Width: 120
+              AccessibleLabel: "Vendor label"
+          - inpVendor:
+              Kind: TextInput
+              X: 160
+              Y: 60
+              Width: 320
+              Text: If(Mode = "Edit", varHeader.Vendor.DisplayName)
+              AccessibleLabel: "Vendor name"
+          - lblDescription:
+              Kind: Label
+              Text: "Description"
+              X: 24
+              Y: 112
+              Width: 120
+              AccessibleLabel: "Description label"
+          - inpDescription:
+              Kind: TextInput
+              X: 160
+              Y: 108
+              Width: 480
+              Height: 80
+              Mode: TextMode.Multiline
+              Text: If(Mode = "Edit", varHeader.Description)
+              AccessibleLabel: "Request description"
+          - chkContract:
+              Kind: Checkbox
+              X: 24
+              Y: 204
+              Width: 160
+              Text: "Contract required"
+              Default: If(Mode = "Edit", varHeader.ContractFlag, false)
+              AccessibleLabel: "Contract required flag"
+          - chkDSRIP:
+              Kind: Checkbox
+              X: 200
+              Y: 204
+              Width: 160
+              Text: "DSRIP related"
+              Default: If(Mode = "Edit", varHeader.DSRIPFlag, false)
+              AccessibleLabel: "DSRIP related flag"
+
+    # -----------------------------------------------------------------
+    # Wizard STEP 2 – Delivery & Timeline
+    # -----------------------------------------------------------------
+    - grpStep2:
+        Kind: Group
+        Visible: varStep = 2
+        Controls:
+          - lblShipTo:
+              Kind: Label
+              Text: "Ship To"
+              X: 24
+              Y: 64
+              Width: 120
+          - inpShipTo:
+              Kind: TextInput
+              X: 160
+              Y: 60
+              Width: 480
+              Text: If(Mode = "Edit", varHeader.ShipTo)
+              AccessibleLabel: "Ship to address"
+          - lblNeedBy:
+              Kind: Label
+              Text: "Need‑By Date"
+              X: 24
+              Y: 112
+              Width: 120
+          - dteNeedBy:
+              Kind: DatePicker
+              X: 160
+              Y: 108
+              Width: 200
+              SelectedDate: If(Mode = "Edit", varHeader.NeedBy)
+              AccessibleLabel: "Need by date"
+
+    # -----------------------------------------------------------------
+    # Wizard STEP 3 – Funding Lines Grid
+    # -----------------------------------------------------------------
+    - grpStep3:
+        Kind: Group
+        Visible: varStep = 3
+        Controls:
+          - galFundingLines:
+              Kind: Gallery
+              X: 24
+              Y: 64
+              Width: Parent.Width - 48
+              Height: 320
+              TemplateSize: 48
+              Items: colFundingLines
+              Controls:
+                - cmpRow:
+                    Kind: Component
+                    ComponentName: cmpFundingLineEntry
+                    FundingLineRecord: ThisItem
+          - btnAddRow:
+              Kind: Button
+              X: 24
+              Y: 400
+              Width: 160
+              Height: 40
+              Text: "Add Row"
+              AccessibleLabel: "Add funding line row"
+              OnSelect: |-
+                  Collect(colFundingLines, { CostCenter: Blank(), ObjectCode: Blank(), Amount: 0 })
+
+          - lblFundingTotalLabel:
+              Kind: Label
+              X: Parent.Width - 300
+              Y: 404
+              Width: 120
+              Height: 40
+              Text: "Total Request:"
+              FontWeight: FontWeight.SemiBold
+              Align: Align.Right
+          - lblFundingTotalValue:
+              Kind: Label
+              X: Parent.Width - 172
+              Y: 404
+              Width: 120
+              Height: 40
+              Text: Text(Sum(colFundingLines, Amount), "$#,##0.00")
+              FontWeight: FontWeight.SemiBold
+              Align: Align.Left
+              AccessibleLabel: '"Total funding amount " & Text(Sum(colFundingLines, Amount), "$#,##0.00")'
+
+    # -----------------------------------------------------------------
+    # Wizard STEP 4 – Attachments
+    # -----------------------------------------------------------------
+    - grpStep4:
+        Kind: Group
+        Visible: varStep = 4
+        Controls:
+          - ctlAttachments:
+              Kind: Attachments
+              X: 24
+              Y: 64
+              Width: Parent.Width - 48
+              Height: 320
+              MaxAttachments: 20
+              MaxAttachmentSize: 10
+              AccessibleLabel: "Attachments"
+
+    # -----------------------------------------------------------------
+    # Wizard STEP 5 – Review & Submit
+    # -----------------------------------------------------------------
+    - grpStep5:
+        Kind: Group
+        Visible: varStep = 5
+        Controls:
+          - lblReviewSummary:
+              Kind: HtmlText # Use HTML for better formatting
+              X: 24
+              Y: 64
+              Width: Parent.Width - 48
+              Height: 300
+              HtmlText: |
+                  Concatenate(
+                      "<h3>Review Your Request</h3>",
+                      "<p><b>Vendor:</b> ", EscapeHTML(inpVendor.Text), "</p>",
+                      "<p><b>Description:</b> ", EscapeHTML(inpDescription.Text), "</p>",
+                      "<p><b>Ship To:</b> ", EscapeHTML(inpShipTo.Text), "</p>",
+                      "<p><b>Need By:</b> ", Text(dteNeedBy.SelectedDate, DateTimeFormat.ShortDate), "</p>",
+                      "<p><b>Contract Required:</b> ", If(chkContract.Value, "Yes", "No"), "</p>",
+                      "<p><b>DSRIP Related:</b> ", If(chkDSRIP.Value, "Yes", "No"), "</p>",
+                      "<h4>Funding Lines (" & CountRows(colFundingLines) & ")</h4>",
+                      "<ul>",
+                      Concat(colFundingLines, "<li>" & EscapeHTML(CostCenter) & " / " & EscapeHTML(ObjectCode) & ": " & Text(Amount, "$#,##0.00") & "</li>"),
+                      "</ul>",
+                      "<hr><p><b>Total Amount: ", Text(Sum(colFundingLines, Amount), "$#,##0.00"), "</b></p>"
+                  )
+              AccessibleLabel: "Review summary section"
+          - btnSubmit:
+              Kind: Button
+              X: 24
+              Y: 380
+              Width: 160
+              Height: 48
+              Text: "Submit"
+              AccessibleLabel: "Submit purchase request"
+              OnSelect: |-
+                  Set(varIsSubmitting, true); /* Optional: for disabling button */
+
+                  /* Aggregate payload */
+                  Set(_headerPayload, {
+                      Title: Left(inpDescription.Text, 140),
+                      Description: inpDescription.Text,
+                      Vendor: inpVendor.Text, /* Consider using a lookup if Vendor is a choice/lookup column */
+                      ContractFlag: chkContract.Value,
+                      DSRIPFlag: chkDSRIP.Value,
+                      ShipTo: inpShipTo.Text,
+                      NeedBy: dteNeedBy.SelectedDate,
+                      Phase: "Draft",
+                      TotalAmount: Sum(colFundingLines, Amount)
+                  });
+
+                  /* --- Parent item Patch with Error Handling --- */
+                  Set(varParentResult,
+                      IfError(
+                          If(Mode = "Edit",
+                             Patch('Purchase Requests', Request, _headerPayload),
+                             Patch('Purchase Requests', Defaults('Purchase Requests'), _headerPayload)
+                          ),
+                          /* Error occurred during Parent Patch */
+                          Notify("Error saving request header: " & FirstError.Message, NotificationType.Error);
+                          Set(varIsSubmitting, false); /* Re-enable button */
+                          Blank() /* Set varParentResult to Blank on error */
+                      )
+                  );
+                  /* --- End Parent Patch --- */
+
+                  /* Proceed only if Parent Patch was successful */
+                  If(!IsBlank(varParentResult),
+                      /* --- Child rows Patch with Error Handling --- */
+                      /* Remove existing children first */
+                      IfError(
+                          RemoveIf('Funding Lines', RequestID = varParentResult.ID),
+                          Notify("Error clearing existing funding lines: " & FirstError.Message, NotificationType.Warning) /* Non-critical error? */
+                      );
+
+                      /* Patch new children */
+                      ForAll(colFundingLines,
+                          IfError(
+                              Patch('Funding Lines', Defaults('Funding Lines'),
+                                  { RequestID: varParentResult.ID, CostCenter: CostCenter, ObjectCode: ObjectCode, Amount: Amount }
+                              ),
+                              /* Error during ForAll Patch */
+                              Notify("Error saving funding line (" & CostCenter & "/" & ObjectCode & "): " & FirstError.Message, NotificationType.Error)
+                              /* Consider collecting errors instead of multiple notifies */
+                          )
+                      );
+                      /* --- End Child Patch --- */
+
+                      /* Check for errors specifically from the ForAll loop */
+                      If(IsEmpty(Errors('Funding Lines')),
+                          Notify("Request saved successfully!", NotificationType.Success);
+                          If(!IsBlank(Self.Parent.OnCompleted), Self.Parent.OnCompleted(varParentResult));
+                      ,
+                          Notify("Request header saved, but errors occurred saving some funding lines.", NotificationType.Warning)
+                          /* Optionally navigate anyway or stay on page */
+                      );
+                  );
+
+                  Set(varIsSubmitting, false); /* Re-enable button */
+
+    # -----------------------------------------------------------------
+    # Navigation Buttons (Back / Next) – persistent across steps 1‑4
+    # -----------------------------------------------------------------
+    - btnBack:
+        Kind: Button
+        X: Parent.Width - 280
+        Y: Parent.Height - 64
+        Width: 120
+        Height: 40
+        Text: "Back"
+        AccessibleLabel: "Previous step"
+        Visible: varStep > 1
+        OnSelect: Set(varStep, varStep - 1)
+    - btnNext:
+        Kind: Button
+        X: Parent.Width - 140
+        Y: Parent.Height - 64
+        Width: 120
+        Height: 40
+        Text: "Next"
+        AccessibleLabel: "Next step"
+        Visible: varStep < 5
+        OnSelect: Set(varStep, varStep + 1)
+        DisplayMode: |-
+            Switch(varStep,
+                1, /* Step 1 Validation */
+                If(!IsBlank(inpVendor.Text) && !IsBlank(inpDescription.Text),
+                   DisplayMode.Edit, DisplayMode.Disabled),
+
+                2, /* Step 2 Validation */
+                If(!IsBlank(inpShipTo.Text) && !IsBlank(dteNeedBy.SelectedDate),
+                   DisplayMode.Edit, DisplayMode.Disabled),
+
+                3, /* Step 3 Validation */
+                If(CountRows(colFundingLines) > 0 && CountIf(colFundingLines, IsBlank(CostCenter) || IsBlank(ObjectCode) || Amount <= 0) = 0,
+                   DisplayMode.Edit, DisplayMode.Disabled),
+
+                4, /* Step 4 Validation (Attachments optional) */
+                DisplayMode.Edit,
+
+                /* Default */
+                DisplayMode.Disabled
+            )

@@ -1,0 +1,41 @@
+App:
+  OnStart: |-
+      /* --------------------------------------------------------- */
+      /* Global initialisation – fires once per session            */
+      /* --------------------------------------------------------- */
+      /* 1. Determine RBAC role (Purchasing Admin)                  */
+      Set(gblIsAdmin,
+          !IsBlank(
+              LookUp('Purchasing Admins', User = User().Email)
+          )
+      );
+
+      /* 2. Pre‑load phase ordering table (used for sort badges)   */
+      ClearCollect(colPhaseOrder,
+          Table(
+              { Phase: "Draft",               Order: 0 },
+              { Phase: "Pending Mgr",         Order: 1 },
+              { Phase: "Pending DSRIP",       Order: 2 },
+              { Phase: "Pending Contract",    Order: 3 },
+              { Phase: "Pending Budget",      Order: 4 },
+              { Phase: "Pending Purchasing",  Order: 5 },
+              { Phase: "Approved",            Order: 6 },
+              { Phase: "Denied",              Order: 99 }
+          )
+      );
+
+      /* 3. Accessibility live‑region setup (toast mirroring)      */
+      /*    LiveRegion is a hidden label placed on every screen.   */
+      Set(gblLiveRegionText, "");
+
+      /* 4. Navigate to the landing hub                           */
+      Navigate(scrMain, ScreenTransition.Fade);
+
+  # -------------------------------------------------------------
+  # App‑wide accessibility & visual tokens
+  # -------------------------------------------------------------
+  AccessibleLabelNonVisibleScope: "Live region for status and alerts"  # WCAG announcer
+  DisabledColor: Theme.Colors.Primary80
+  ErrorColor: Theme.Colors.Danger
+  SuccessColor: Theme.Colors.Accent
+  TextColor: Theme.Colors.Text

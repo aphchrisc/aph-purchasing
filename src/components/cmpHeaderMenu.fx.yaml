@@ -1,0 +1,64 @@
+cmpHeaderMenu:
+  Kind: component
+  CustomProperties:
+    - Name: IsOpen
+      Type: Boolean
+      IsInput: true
+      IsOutput: false
+    - Name: OnNavigate
+      Type: Behavior
+      IsInput: true
+      IsOutput: false
+  TemplateSize: 56  # Height matches cmpHeader for alignment
+  Properties:
+    Width: 56
+    Height: 56
+    Fill: Theme.Colors.Primary100
+    Visible: true
+  Controls:
+    - ctlHamburger:
+        Kind: Icon
+        Icon: Icon.Menu
+        X: 8
+        Y: 8
+        Width: 40
+        Height: 40
+        AccessibleLabel: "Open navigation menu"
+        OnSelect: Set(varMenuOpen, !varMenuOpen)
+        Color: Theme.Colors.Surface
+    - ctlMenuPanel:
+        Kind: Rectangle
+        X: 0
+        Y: 56
+        Width: 240
+        Height: Parent.App.Height
+        Fill: Theme.Colors.Surface
+        BorderStyle: BorderStyle.None
+        Visible: varMenuOpen
+        AccessibleLabel: "Navigation panel"
+    - galLinks:
+        Kind: Gallery
+        Items: [
+                { Label: "Home",        Screen: scrMain       },
+                { Label: "New Request", Screen: scrNewRequest },
+                { Label: "My Requests", Screen: scrViewMyRequests },
+                { Label: "Pending",     Screen: scrViewPendingRequests },
+                { Label: "Admin",       Screen: scrAdmin, Visible: gblIsAdmin }
+              ]
+        TemplateSize: 48
+        X: 0
+        Y: 56
+        Width: 240
+        Height: CountRows(This.Items) * 48
+        Visible: varMenuOpen
+        Controls:
+          - lblLink:
+              Kind: Label
+              Text: ThisItem.Label
+              Width: Parent.Width
+              Height: Parent.TemplateSize
+              PaddingLeft: 16
+              VerticalAlign: VerticalAlign.Center
+              Color: Theme.Colors.Text
+              AccessibleLabel: ThisItem.Label
+              OnSelect: [ OnNavigate(ThisItem.Screen); Set(varMenuOpen, false) ]

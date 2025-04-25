@@ -1,0 +1,19 @@
+{
+  "ThemeJsonVersion": "1.0",
+  "CurrentTheme": "Default theme",
+  "CustomThemes": [
+    {
+      "Name": "Default theme",
+      "Palette": [
+        { "Name": "ScreenBkgColor", "Type": "c", "Value": "RGBA(255,255,255,1)" },
+        { "Name": "PrimaryColor1",  "Type": "c", "Value": "RGBA(0,90,160,1)" },
+        { "Name": "WarningColor",   "Type": "c", "Value": "RGBA(255,165,0,1)" }, /* Orange */
+        { "Name": "InfoColor",      "Type": "c", "Value": "RGBA(0,123,255,1)" }  /* Standard Blue */
+      ],
+      "Styles":   [],
+      "Templates": []
+    }
+  ],
+  "ControlStyles":   [],
+  "ScreenTemplates": []
+}

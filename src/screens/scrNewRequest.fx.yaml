@@ -1,0 +1,21 @@
+scrNewRequest:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+  Controls:
+    - cmpHeaderNew:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: "New Request"
+    - cmpForm:
+        Kind: Component
+        ComponentName: cmpRequestForm
+        X: 0
+        Y: 56   # below the header
+        Width: Parent.Width
+        Height: Parent.Height - 56
+        Mode: "New"
+        OnCompleted: Navigate(scrViewMyRequests, ScreenTransition.Fade)

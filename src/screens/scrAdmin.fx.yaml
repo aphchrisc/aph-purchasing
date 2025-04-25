@@ -1,0 +1,70 @@
+scrAdmin:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+    Visible: gblIsAdmin   # Safety: ensure only admins can navigate here
+  Controls:
+    # ---------------------------------------------------------------
+    # Header
+    # ---------------------------------------------------------------
+    - cmpHeaderAdmin:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: "Admin Panel"
+
+    # ---------------------------------------------------------------
+    # Admin Links (Open in SharePoint or trigger flows)
+    # ---------------------------------------------------------------
+    - galAdminLinks:
+        Kind: Gallery
+        X: 24
+        Y: 72
+        Width: 360
+        Height: 400
+        TemplateSize: 56
+        AccessibleLabel: "Administrative actions"
+        Items: [
+                { Label: "Open Purchase Requests list",
+                  Action: Launch(ENV_TENANT_URL & "/Lists/Purchase%20Requests/AllItems.aspx") },
+                { Label: "Open Funding Lines list",
+                  Action: Launch(ENV_TENANT_URL & "/Lists/Funding%20Lines/AllItems.aspx") },
+                { Label: "Open Approvals list",
+                  Action: Launch(ENV_TENANT_URL & "/Lists/Approvals/AllItems.aspx") },
+                { Label: "Run Archive Script",
+                  /* Assumes a flow named 'ArchiveRequestsFlow' is added to the app */
+                  Action: |- /* Add IfError for feedback */
+                      Notify("Attempting to start archive process...", NotificationType.Information);
+                      IfError(
+                          ArchiveRequestsFlow.Run(),
+                          /* Error running flow */
+                          Notify("Error starting archive flow: " & FirstError.Message, NotificationType.Error),
+                          /* Success starting flow (flow itself might still fail later) */
+                          Notify("Archive process initiated successfully.", NotificationType.Success)
+                      ) }
+              ]
+        Controls:
+          - lblLink:
+              Kind: Label
+              Text: ThisItem.Label
+              X: 0
+              Y: 0
+              Width: 320
+              Height: 56
+              AccessibleLabel: ThisItem.Label
+              OnSelect: ThisItem.Action
+
+    # ---------------------------------------------------------------
+    # Navigation back to home
+    # ---------------------------------------------------------------
+    - btnBackHome:
+        Kind: Button
+        X: 24
+        Y: Parent.Height - 72
+        Width: 160
+        Height: 40
+        Text: "Back to Home"
+        AccessibleLabel: "Return to home screen"
+        OnSelect: Navigate(scrMain, ScreenTransition.Fade)

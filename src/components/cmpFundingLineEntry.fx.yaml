@@ -1,0 +1,59 @@
+cmpFundingLineEntry:
+  Kind: component
+  CustomProperties:
+    - Name: FundingLineRecord
+      Type: Record
+      IsInput: false
+      IsOutput: true
+  TemplateSize: 48
+  Properties:
+    Width: Parent.Width
+    Height: 48
+  Controls:
+    - ddlCostCenter:
+        Kind: ComboBox
+        X: 0
+        Y: 4
+        Width: 220
+        Height: 40
+        Items: Choices('Funding Lines'.CostCenter)
+        SelectedItems: [ { Value: ThisItem.CostCenter } ]
+        AccessibleLabel: "Cost center"
+        OnChange: Set(varChanged, true)
+    - ddlObjectCode:
+        Kind: ComboBox
+        X: 236
+        Y: 4
+        Width: 160
+        Height: 40
+        Items: Choices('Funding Lines'.ObjectCode)
+        SelectedItems: [ { Value: ThisItem.ObjectCode } ]
+        AccessibleLabel: "Object code"
+        OnChange: Set(varChanged, true)
+    - txtAmount:
+        Kind: TextInput
+        X: 408
+        Y: 4
+        Width: 120
+        Height: 40
+        Format: TextFormat.Number
+        PlaceholderText: "$0.00"
+        AccessibleLabel: "Amount"
+        OnChange: Set(varChanged, true)
+    - icnRemove:
+        Kind: Icon
+        Icon: Icon.Delete
+        X: 540
+        Y: 8
+        Width: 32
+        Height: 32
+        Color: Theme.Colors.Danger
+        AccessibleLabel: "Remove funding line"
+        OnSelect: Notify("Row removed", Information); Remove(colFundingLines, ThisItem)
+  Output:
+    FundingLineRecord: |-
+        {
+            CostCenter: ddlCostCenter.Selected.Value,
+            ObjectCode: ddlObjectCode.Selected.Value,
+            Amount: Value(txtAmount.Text)
+        }

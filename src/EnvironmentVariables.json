@@ -1,0 +1,43 @@
+
+
+{
+  "$schema": "https://aka.ms/powerapps/schemas/environmentvariables.json",
+  "environmentVariables": [
+    {
+      "name": "ENV_TENANT_URL",
+      "type": "string",
+      "defaultValue": "__ENV_TENANT_URL__",
+      "description": "Base SharePoint site URL for the APH Purchasing app"
+    },
+    {
+      "name": "ENV_LIST_REQUESTS_ID",
+      "type": "string",
+      "defaultValue": "__ENV_LIST_REQUESTS_ID__",
+      "description": "GUID of the Purchase Requests SharePoint list"
+    },
+    {
+      "name": "ENV_LIST_FUNDINGLINES_ID",
+      "type": "string",
+      "defaultValue": "__ENV_LIST_FUNDINGLINES_ID__",
+      "description": "GUID of the Funding Lines SharePoint list"
+    },
+    {
+      "name": "ENV_LIST_APPROVALS_ID",
+      "type": "string",
+      "defaultValue": "__ENV_LIST_APPROVALS_ID__",
+      "description": "GUID of the Approvals SharePoint list"
+    },
+    {
+      "name": "ENV_LIST_ADMINS_ID",
+      "type": "string",
+      "defaultValue": "__ENV_LIST_ADMINS_ID__",
+      "description": "GUID of the Purchasing Admins SharePoint list"
+    },
+    {
+      "name": "SP_CONNECTION_ID",
+      "type": "string",
+      "defaultValue": "__SP_CONNECTION_ID__",
+      "description": "Connection reference ID for the SharePoint connector"
+    }
+  ]
+}

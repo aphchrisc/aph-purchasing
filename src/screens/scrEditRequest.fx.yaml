@@ -1,0 +1,29 @@
+scrEditRequest:
+  Kind: screen
+  Properties:
+    Fill: Theme.Colors.Surface
+    OnVisible: |-
+        /* Expecting navigation to supply the record being edited */
+        If(!IsBlank(Param("requestId")),
+            Set(varSelectedRequest,
+                LookUp('Purchase Requests', ID = Value(Param("requestId")))
+            )
+        )
+  Controls:
+    - cmpHeaderEdit:
+        Kind: Component
+        ComponentName: cmpHeader
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        PageTitle: "Edit Request"
+    - cmpFormEdit:
+        Kind: Component
+        ComponentName: cmpRequestForm
+        X: 0
+        Y: 56
+        Width: Parent.Width
+        Height: Parent.Height - 56
+        Mode: "Edit"
+        Request: varSelectedRequest
+        OnCompleted: Navigate(scrViewMyRequests, ScreenTransition.Fade)

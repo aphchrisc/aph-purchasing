@@ -1,0 +1,49 @@
+cmpHeader:
+  Kind: component
+  CustomProperties:
+    - Name: PageTitle
+      Type: String
+      IsInput: true
+      IsOutput: false
+  TemplateSize: 56   # consistent height across screens
+  Properties:
+    Width: Parent.Width
+    Height: 56
+    Fill: Theme.Colors.Primary100
+  Controls:
+    - ctlLogo:
+        Kind: Image
+        X: 8
+        Y: 8
+        Width: 40
+        Height: 40
+        Image: "Assets/APH_Logo.png"
+        AccessibleLabel: "Austin Public Health logo"
+    - ctlPageTitle:
+        Kind: Label
+        X: 56
+        Y: 14
+        Width: Parent.Width - 320
+        Height: 28
+        Text: PageTitle
+        Color: Theme.Colors.Surface
+        FontWeight: FontWeight.SemiBold
+        AccessibleLabel: PageTitle
+    - ctlUser:
+        Kind: Label
+        X: Parent.Width - 240
+        Y: 18
+        Width: 180
+        Text: User().FullName
+        Color: Theme.Colors.Surface
+        FontWeight: FontWeight.Medium
+        TextAlign: TextAlign.Right
+        AccessibleLabel: '"Signed in as " & User().FullName'
+    - ctlAvatar:
+        Kind: User
+        X: Parent.Width - 50
+        Y: 4
+        Width: 48
+        Height: 48
+        UserEmail: User().Email
+        AccessibleLabel: User().FullName
