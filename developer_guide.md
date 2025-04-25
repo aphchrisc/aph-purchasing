@@ -1,6 +1,6 @@
 # APH Purchasing Power App - Developer Implementation Guide
 
-This guide provides instructions for setting up the necessary backend (SharePoint lists) and understanding the structure and logic of the APH Purchasing Power App based on the source code provided in the `src1` directory. Following these steps chronologically should allow a developer to reconstruct and deploy the application.
+This guide provides instructions for setting up the necessary backend (SharePoint lists) and understanding the structure and logic of the APH Purchasing Power App based on the source code provided in the `src` directory. Following these steps chronologically should allow a developer to reconstruct and deploy the application.
 
 ## 1. Prerequisites: SharePoint List Setup
 
@@ -109,12 +109,12 @@ Set up the two Power Automate flows as detailed in `.docs/power_automate_require
 
 Ensure these flows are included in the same Power Platform solution as the app and use the SharePoint connection reference.
 
-## 4. Building the App from Source (`src1`)
+## 4. Building the App from Source (`src`)
 
 1.  **Enable YAML Source Files:** Ensure the Power Platform environment settings allow YAML source file format for Canvas Apps.
-2.  **Use PAC CLI:** Use the Power Platform CLI (`pac`) to pack the source code from the `src1` directory into an `.msapp` file.
+2.  **Use PAC CLI:** Use the Power Platform CLI (`pac`) to pack the source code from the `src` directory into an `.msapp` file.
     ```bash
-    pac canvas pack --sources src1 --msapp MyPurchasingApp.msapp
+    pac canvas pack --sources src --msapp MyPurchasingApp.msapp
     ```
 3.  **Import `.msapp`:** Import the generated `MyPurchasingApp.msapp` file into your Power Platform environment via the Maker Portal or `pac canvas create --msapp ...`.
 4.  **Connect Data Sources:** Open the imported app in the Studio. Verify/establish connections to the SharePoint lists using the connection reference. The `DataSources.json` file defines the structure, but the connection needs to be active.
