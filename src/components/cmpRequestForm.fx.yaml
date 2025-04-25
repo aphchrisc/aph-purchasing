@@ -62,7 +62,7 @@ cmpRequestForm:
               Kind: Rectangle
               X: 0
               Y: 0
-              Width: Parent.TemplateWidth - 4 /* Gap between steps */
+              Width: Parent.TemplateWidth - 4
               Height: 8
               Fill: If(ThisItem.Step < varStep, Theme.Colors.Primary80, If(ThisItem.Step = varStep, Theme.Colors.Primary100, Theme.Colors.NeutralLight))
               RadiusTopLeft: 4
@@ -101,7 +101,7 @@ cmpRequestForm:
               X: 160
               Y: 60
               Width: 320
-              Text: If(Mode = "Edit", varHeader.Vendor.DisplayName)
+              Default: If(Mode = "Edit", varHeader.Vendor) # Assuming Vendor is Text, adjust if Lookup/Choice
               AccessibleLabel: "Vendor name"
           - lblDescription:
               Kind: Label
@@ -117,7 +117,7 @@ cmpRequestForm:
               Width: 480
               Height: 80
               Mode: TextMode.Multiline
-              Text: If(Mode = "Edit", varHeader.Description)
+              Default: If(Mode = "Edit", varHeader.Description)
               AccessibleLabel: "Request description"
           - chkContract:
               Kind: Checkbox
@@ -135,6 +135,30 @@ cmpRequestForm:
               Text: "DSRIP related"
               Default: If(Mode = "Edit", varHeader.DSRIPFlag, false)
               AccessibleLabel: "DSRIP related flag"
+          - conRevisionComments: # Moved inside grpStep1 Controls
+              Kind: Container
+              X: 24
+              Y: 240 # Position below checkboxes
+              Width: Parent.Width - 48 # Relative to Group, might need adjustment
+              Height: 80
+              Visible: Mode = "Edit" && !IsBlank(Request.RevisionComments)
+              Layout: Layout.Vertical
+              Controls:
+                - lblRevisionCommentLabel:
+                    Kind: Label
+                    Text: "Revision Comments from Approver:"
+                    FontWeight: FontWeight.Semibold
+                    Color: Theme.Colors.WarningColor
+                    Width: Parent.Width
+                    Height: 24
+                - lblRevisionCommentValue:
+                    Kind: Label
+                    Text: Request.RevisionComments
+                    Width: Parent.Width
+                    Height: Parent.Height - Self.Y
+                    VerticalAlign: VerticalAlign.Top
+                    AutoHeight: true
+                    Color: Theme.Colors.WarningColor
 
     # -----------------------------------------------------------------
     # Wizard STEP 2 – Delivery & Timeline
@@ -154,7 +178,7 @@ cmpRequestForm:
               X: 160
               Y: 60
               Width: 480
-              Text: If(Mode = "Edit", varHeader.ShipTo)
+              Default: If(Mode = "Edit", varHeader.ShipTo)
               AccessibleLabel: "Ship to address"
           - lblNeedBy:
               Kind: Label
@@ -167,7 +191,7 @@ cmpRequestForm:
               X: 160
               Y: 108
               Width: 200
-              SelectedDate: If(Mode = "Edit", varHeader.NeedBy)
+              DefaultDate: If(Mode = "Edit", varHeader.NeedBy) # Use DefaultDate for DatePicker
               AccessibleLabel: "Need by date"
 
     # -----------------------------------------------------------------
@@ -237,6 +261,7 @@ cmpRequestForm:
               MaxAttachments: 20
               MaxAttachmentSize: 10
               AccessibleLabel: "Attachments"
+              Item: If(Mode="Edit", Request) # Bind attachments to the record in Edit mode
 
     # -----------------------------------------------------------------
     # Wizard STEP 5 – Review & Submit
@@ -276,19 +301,20 @@ cmpRequestForm:
               Text: "Submit"
               AccessibleLabel: "Submit purchase request"
               OnSelect: |-
-                  Set(varIsSubmitting, true); /* Optional: for disabling button */
+                  Set(varIsSubmitting, true);
 
                   /* Aggregate payload */
                   Set(_headerPayload, {
                       Title: Left(inpDescription.Text, 140),
                       Description: inpDescription.Text,
-                      Vendor: inpVendor.Text, /* Consider using a lookup if Vendor is a choice/lookup column */
+                      Vendor: inpVendor.Text,
                       ContractFlag: chkContract.Value,
                       DSRIPFlag: chkDSRIP.Value,
                       ShipTo: inpShipTo.Text,
                       NeedBy: dteNeedBy.SelectedDate,
                       Phase: "Draft",
-                      TotalAmount: Sum(colFundingLines, Amount)
+                      TotalAmount: Sum(colFundingLines, Amount),
+                      RevisionComments: Blank() /* Clear comments on save */
                   });
 
                   /* --- Parent item Patch with Error Handling --- */
@@ -300,8 +326,8 @@ cmpRequestForm:
                           ),
                           /* Error occurred during Parent Patch */
                           Notify("Error saving request header: " & FirstError.Message, NotificationType.Error);
-                          Set(varIsSubmitting, false); /* Re-enable button */
-                          Blank() /* Set varParentResult to Blank on error */
+                          Set(varIsSubmitting, false);
+                          Blank()
                       )
                   );
                   /* --- End Parent Patch --- */
@@ -309,36 +335,30 @@ cmpRequestForm:
                   /* Proceed only if Parent Patch was successful */
                   If(!IsBlank(varParentResult),
                       /* --- Child rows Patch with Error Handling --- */
-                      /* Remove existing children first */
                       IfError(
                           RemoveIf('Funding Lines', RequestID = varParentResult.ID),
-                          Notify("Error clearing existing funding lines: " & FirstError.Message, NotificationType.Warning) /* Non-critical error? */
+                          Notify("Error clearing existing funding lines: " & FirstError.Message, NotificationType.Warning)
                       );
 
-                      /* Patch new children */
                       ForAll(colFundingLines,
                           IfError(
                               Patch('Funding Lines', Defaults('Funding Lines'),
                                   { RequestID: varParentResult.ID, CostCenter: CostCenter, ObjectCode: ObjectCode, Amount: Amount }
                               ),
-                              /* Error during ForAll Patch */
                               Notify("Error saving funding line (" & CostCenter & "/" & ObjectCode & "): " & FirstError.Message, NotificationType.Error)
-                              /* Consider collecting errors instead of multiple notifies */
                           )
                       );
                       /* --- End Child Patch --- */
 
-                      /* Check for errors specifically from the ForAll loop */
                       If(IsEmpty(Errors('Funding Lines')),
                           Notify("Request saved successfully!", NotificationType.Success);
                           If(!IsBlank(Self.Parent.OnCompleted), Self.Parent.OnCompleted(varParentResult));
                       ,
                           Notify("Request header saved, but errors occurred saving some funding lines.", NotificationType.Warning)
-                          /* Optionally navigate anyway or stay on page */
                       );
                   );
 
-                  Set(varIsSubmitting, false); /* Re-enable button */
+                  Set(varIsSubmitting, false);
 
     # -----------------------------------------------------------------
     # Navigation Buttons (Back / Next) – persistent across steps 1‑4

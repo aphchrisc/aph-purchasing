@@ -60,8 +60,8 @@ scrViewRequestDetail:
         Y: 128
         Width: Parent.Width - 204
         Height: 32
-        Text: =varDetailRequest.Vendor /* Adjust if Vendor is Lookup/Choice */
-        AccessibleLabel: ="Vendor " & varDetailRequest.Vendor
+        Text: =varDetailRequest.Vendor # Adjust if Vendor is Lookup/Choice
+        AccessibleLabel: =$"Vendor {varDetailRequest.Vendor}"
 
     - lblDetailDescLabel:
         Kind: Label
@@ -76,10 +76,10 @@ scrViewRequestDetail:
         X: 180
         Y: 164
         Width: Parent.Width - 204
-        Height: 64 /* Allow wrapping */
+        Height: 64 # Allow wrapping
         Text: =varDetailRequest.Description
         VerticalAlign: VerticalAlign.Top
-        AccessibleLabel: ="Description " & varDetailRequest.Description
+        AccessibleLabel: =$"Description {varDetailRequest.Description}"
 
     - lblDetailShipToLabel:
         Kind: Label
@@ -96,7 +96,7 @@ scrViewRequestDetail:
         Width: Parent.Width - 204
         Height: 32
         Text: =varDetailRequest.ShipTo
-        AccessibleLabel: ="Ship To " & varDetailRequest.ShipTo
+        AccessibleLabel: =$"Ship To {varDetailRequest.ShipTo}"
 
     - lblDetailNeedByLabel:
         Kind: Label
@@ -113,7 +113,7 @@ scrViewRequestDetail:
         Width: Parent.Width - 204
         Height: 32
         Text: =Text(varDetailRequest.NeedBy, DateTimeFormat.ShortDate)
-        AccessibleLabel: ="Need by date " & Text(varDetailRequest.NeedBy, DateTimeFormat.LongDate)
+        AccessibleLabel: =$"Need by date {Text(varDetailRequest.NeedBy, DateTimeFormat.LongDate)}"
 
     - lblDetailFlagsLabel:
         Kind: Label
@@ -130,7 +130,8 @@ scrViewRequestDetail:
         Width: Parent.Width - 204
         Height: 32
         Text: =Concatenate(If(varDetailRequest.ContractFlag, "Contract Required; ", ""), If(varDetailRequest.DSRIPFlag, "DSRIP Related", ""))
-        AccessibleLabel: ="Flags: " & Concatenate(If(varDetailRequest.ContractFlag, "Contract Required; ", ""), If(varDetailRequest.DSRIPFlag, "DSRIP Related", ""))
+        AccessibleLabel: |-
+            ="Flags: " & Concatenate(If(varDetailRequest.ContractFlag, "Contract Required; ", ""), If(varDetailRequest.DSRIPFlag, "DSRIP Related", ""))
 
     - lblDetailPhaseLabel:
         Kind: Label
@@ -148,14 +149,36 @@ scrViewRequestDetail:
         Height: 32
         Text: =varDetailRequest.Phase
         FontWeight: FontWeight.SemiBold
-        Color: |- /* Color based on phase */
-            Switch(varDetailRequest.Phase,
+        Color: |-
+            =Switch(varDetailRequest.Phase,
                 "Draft", Theme.Colors.NeutralPrimary,
                 "Denied", Theme.Colors.Danger,
                 "Approved", Theme.Colors.Accent,
                 Theme.Colors.Primary100 /* Default for pending */
             )
-        AccessibleLabel: ="Current phase " & varDetailRequest.Phase
+        AccessibleLabel: =$"Current phase {varDetailRequest.Phase}"
+
+    - lblDetailRevisionLabel:
+        Kind: Label
+        X: 24
+        Y: 376 # Below Phase
+        Width: 150
+        Height: 32
+        Text: "Revision Comments:"
+        FontWeight: FontWeight.SemiBold
+        Visible: =!IsBlank(varDetailRequest.RevisionComments) # Formula prefix =
+        Color: Theme.Colors.WarningColor
+    - lblDetailRevisionValue:
+        Kind: Label
+        X: 180
+        Y: 376 # Below Phase
+        Width: Parent.Width - 204
+        Height: 64 # Allow wrapping
+        Text: =varDetailRequest.RevisionComments
+        VerticalAlign: VerticalAlign.Top
+        Visible: =!IsBlank(varDetailRequest.RevisionComments) # Formula prefix =
+        Color: Theme.Colors.WarningColor
+        AccessibleLabel: =$"Revision comments provided by approver: {varDetailRequest.RevisionComments}"
 
     # ---------------------------------------------------------------
     # Funding Lines Gallery (Read-Only)
@@ -163,7 +186,7 @@ scrViewRequestDetail:
     - lblFundingLinesHeader:
         Kind: Label
         X: 24
-        Y: 388
+        Y: 448 # Adjusted Y position due to comments field
         Width: Parent.Width - 48
         Height: 32
         Text: "Funding Lines"
@@ -172,9 +195,9 @@ scrViewRequestDetail:
     - galDetailFundingLines:
         Kind: Gallery
         X: 24
-        Y: 424
+        Y: 484 # Adjusted Y position due to comments field
         Width: Parent.Width - 48
-        Height: 150 /* Adjust as needed */
+        Height: 150 # Adjust as needed
         TemplateSize: 32
         Items: colDetailFundingLines
         AccessibleLabel: "Funding lines for this request"
@@ -186,7 +209,7 @@ scrViewRequestDetail:
               Width: 220
               Height: Parent.TemplateHeight
               Text: =ThisItem.CostCenter
-              AccessibleLabel: ="Cost Center " & ThisItem.CostCenter
+              AccessibleLabel: =$"Cost Center {ThisItem.CostCenter}"
           - lblDetailObjectCode:
               Kind: Label
               X: 236
@@ -194,7 +217,7 @@ scrViewRequestDetail:
               Width: 160
               Height: Parent.TemplateHeight
               Text: =ThisItem.ObjectCode
-              AccessibleLabel: ="Object Code " & ThisItem.ObjectCode
+              AccessibleLabel: =$"Object Code {ThisItem.ObjectCode}"
           - lblDetailAmount:
               Kind: Label
               X: 408
@@ -202,32 +225,31 @@ scrViewRequestDetail:
               Width: 120
               Height: Parent.TemplateHeight
               Text: =Text(ThisItem.Amount, "$#,##0.00")
-              AccessibleLabel: ="Amount " & Text(ThisItem.Amount, "$#,##0.00")
+              AccessibleLabel: =$"Amount {Text(ThisItem.Amount, "$#,##0.00")}"
 
     # ---------------------------------------------------------------
     # Attachments Viewer (Optional - Placeholder)
     # ---------------------------------------------------------------
-    /*
-    - lblAttachmentsHeader:
-        Kind: Label
-        X: 24
-        Y: 580
-        Width: Parent.Width - 48
-        Height: 32
-        Text: "Attachments"
-        FontWeight: FontWeight.Bold
-        Size: 14
-    - galAttachments:
-        Kind: Gallery
-        Items: colDetailAttachments // Assuming loaded in OnVisible
-        X: 24
-        Y: 616
-        Width: Parent.Width - 48
-        Height: 100 // Adjust as needed
-        TemplateSize: 40
-        Controls:
-          - lblAttachmentName:
-              Kind: Label
-              Text: ThisItem.Name
-              OnSelect: Launch(ThisItem.Value) // Or ThisItem.AbsoluteUri
-    */
+    # - lblAttachmentsHeader:
+    #     Kind: Label
+    #     X: 24
+    #     Y: 640 # Adjusted Y
+    #     Width: Parent.Width - 48
+    #     Height: 32
+    #     Text: "Attachments"
+    #     FontWeight: FontWeight.Bold
+    #     Size: 14
+    # - galAttachments:
+    #     Kind: Gallery
+    #     Items: =LookUp('Purchase Requests', ID = Value(Param("requestId"))).Attachments # Load directly if needed
+    #     X: 24
+    #     Y: 676 # Adjusted Y
+    #     Width: Parent.Width - 48
+    #     Height: 100 # Adjust as needed
+    #     TemplateSize: 40
+    #     Controls:
+    #       - lblAttachmentName:
+    #           Kind: Label
+    #           Text: ThisItem.Name
+    #           AccessibleLabel: =$"Attachment {ThisItem.Name}"
+    #           OnSelect: Launch(ThisItem.Value) # Or ThisItem.AbsoluteUri

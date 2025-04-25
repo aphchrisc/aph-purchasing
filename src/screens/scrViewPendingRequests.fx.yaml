@@ -87,7 +87,7 @@ scrViewPendingRequests:
               Width: 120
               Height: 72
               Text: Text(ThisItem.TotalAmount, "$#,###.00")
-              AccessibleLabel: |- /* Corrected format */
+              AccessibleLabel: |-
                 "Total amount " & Text(ThisItem.TotalAmount, "$#,##0.00")
           - lblAge:
               Kind: Label
@@ -165,24 +165,10 @@ scrViewPendingRequests:
               Text: "Deny"
               AccessibleLabel: '"Deny request " & ThisItem.ID'
               OnSelect: |-
-                  /* --- Patch Request with Error Handling --- */
-                  IfError(
-                      Patch('Purchase Requests', ThisItem, { Phase: "Denied", CurrentApprover: Blank() }), /* Also clear approver on deny */
-                      Notify("Error denying request: " & FirstError.Message, NotificationType.Error),
-                      /* If successful, proceed to patch Approvals */
-                      IfError(
-                          Patch('Approvals', Defaults('Approvals'),
-                              { RequestID: ThisItem.ID,
-                                Approver: User().Email,
-                                Decision: "Denied",
-                                Timestamp: Now()
-                              }
-                          ),
-                          Notify("Error logging denial: " & FirstError.Message, NotificationType.Warning), /* Log error but maybe continue */
-                          Notify("Request " & ThisItem.ID & " denied.", NotificationType.Information) /* Success */
-                      )
-                  );
-                  /* --- End Patch Request --- */
+                  /* Show Deny Popup and store selected item */
+                  UpdateContext({ locRequestToDeny: ThisItem });
+                  UpdateContext({ locShowDenyPopup: true });
+                  Reset(inpRevisionComments); /* Clear previous comments */
               Color: Theme.Colors.Surface
               Fill: Theme.Colors.Danger
 
@@ -205,3 +191,104 @@ scrViewPendingRequests:
             )
         Color: Theme.Colors.Text
         Visible: CountRows(galPending.AllItems) = 0 || galPending.Loading
+
+    # ---------------------------------------------------------------
+    # Deny with Comments Popup
+    # ---------------------------------------------------------------
+    - grpDenyPopup:
+        Kind: Group
+        Visible: locShowDenyPopup
+        X: 0
+        Y: 0
+        Width: Parent.Width
+        Height: Parent.Height
+        Controls:
+          - rectDenyPopupBG:
+              Kind: Rectangle
+              Fill: RGBA(0, 0, 0, 0.6) /* Semi-transparent background */
+              Width: Parent.Width
+              Height: Parent.Height
+          - conDenyPopup:
+              Kind: Container
+              X: (Parent.Width / 2) - 250
+              Y: (Parent.Height / 2) - 175
+              Width: 500
+              Height: 350
+              Fill: Theme.Colors.Surface
+              DropShadow: DropShadow.Light
+              BorderColor: Theme.Colors.NeutralLight
+              BorderThickness: 1
+              Controls:
+                - lblDenyTitle:
+                    Kind: Label
+                    X: 24
+                    Y: 20
+                    Width: Parent.Width - 48
+                    Height: 40
+                    Text: ="Send Request " & locRequestToDeny.ID & " Back for Revision"
+                    FontWeight: FontWeight.Semibold
+                    Size: 16
+                    Align: Align.Center
+                - lblDenyComments:
+                    Kind: Label
+                    X: 24
+                    Y: 70
+                    Width: Parent.Width - 48
+                    Height: 24
+                    Text: "Please provide comments for the requestor:"
+                - inpRevisionComments:
+                    Kind: TextInput
+                    X: 24
+                    Y: 100
+                    Width: Parent.Width - 48
+                    Height: 150
+                    Mode: TextMode.MultiLine
+                    HintText: "Enter comments here..."
+                    AccessibleLabel: "Revision comments for requestor"
+                - btnConfirmDeny:
+                    Kind: Button
+                    X: Parent.Width - 288 /* 120 + 16 + 120 + 32 */
+                    Y: Parent.Height - 60
+                    Width: 120
+                    Height: 40
+                    Text: "Send Back"
+                    AccessibleLabel: "Confirm sending request back for revision"
+                    Fill: Theme.Colors.WarningColor /* Use Warning color */
+                    OnSelect: |-
+                        /* --- Patch Request to Draft with Comments --- */
+                        IfError(
+                            Patch('Purchase Requests', locRequestToDeny,
+                                {
+                                    Phase: "Draft",
+                                    RevisionComments: inpRevisionComments.Text,
+                                    CurrentApprover: Blank()
+                                }
+                            ),
+                            Notify("Error sending request back: " & FirstError.Message, NotificationType.Error),
+                            /* If successful, proceed to patch Approvals */
+                            IfError(
+                                Patch('Approvals', Defaults('Approvals'),
+                                    {
+                                        RequestID: locRequestToDeny.ID,
+                                        Approver: User().Email,
+                                        Decision: "Revision Requested", /* New decision type */
+                                        Timestamp: Now(),
+                                        Comments: inpRevisionComments.Text /* Optionally log comments here too */
+                                    }
+                                ),
+                                Notify("Error logging revision request: " & FirstError.Message, NotificationType.Warning),
+                                Notify("Request " & locRequestToDeny.ID & " sent back for revision.", NotificationType.Success)
+                            )
+                        );
+                        /* --- End Patches --- */
+                        UpdateContext({ locShowDenyPopup: false });
+                - btnCancelDeny:
+                    Kind: Button
+                    X: Parent.Width - 152 /* 120 + 32 */
+                    Y: Parent.Height - 60
+                    Width: 120
+                    Height: 40
+                    Text: "Cancel"
+                    AccessibleLabel: "Cancel sending request back"
+                    OnSelect: |-
+                        UpdateContext( locShowDenyPopup: false )
