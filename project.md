@@ -204,7 +204,7 @@ Your typical workflow will involve:
 
 All transactional and master data reside in SharePoint lists within the same site. Relationships (primarily via Lookup columns) drive dropdowns in the Canvas app and data retrieval in flows.
 
-![1746042921739](image/project/1746042921739.png)
+![1746042921739](1746042921739.png)
 
 DBML - paste in https://dbdiagram.io/
 
