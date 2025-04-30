@@ -72,7 +72,7 @@ Confirm your user account has the necessary permissions. Request access if you d
 
 ---
 
-**REVISED SECTION 4 of APH P - Developer Onboarding & Setup Guide**
+**REVISED SECTION 4 of APH - Developer Onboarding & Setup Guide**
 
 ---
 
@@ -199,7 +199,7 @@ Follow these steps carefully. This process aligns existing work with the documen
 
 ---
 
-**REVISED SECTION 5 of APH P - Developer Onboarding & Setup Guide**
+**REVISED SECTION 5 of APH - Developer Onboarding & Setup Guide**
 
 ---
 
@@ -228,9 +228,6 @@ Now that the **new** repository is initialized and reflects the Dev environment,
     *   Push your feature branch to the remote repository: `git push origin feature/SPR-XXX-MyTaskName`.
     *   Go to the Git repository interface (e.g., GitHub) and create a Pull Request (PR) to merge your branch into the `develop` branch (or `main`). Your changes will be reviewed before merging.
 
----
-
-This revised Section 4 and 5 now explicitly guides the developer through creating a new repository and populating it correctly from the existing Dev environment resources.
 
 ---
 
