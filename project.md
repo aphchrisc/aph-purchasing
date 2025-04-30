@@ -182,7 +182,7 @@ Your typical workflow will involve:
 --- START OF FILE 2: APH Purchasing App – Overall Architecture ---
 
 **APH Purchasing App – Overall Architecture**
-*This document provides a comprehensive overview of how all components—data, UI, and automation—work together to drive the APH Purchasing solution. It is designed to guide a junior developer through the end-to-end architecture and process flow.*
+*This document provides a comprehensive overview of how all components—data, UI, and automation—work together to drive the APH Purchasing solution.*
 
 ---
 
@@ -483,7 +483,7 @@ flowchart TD
 
 ---
 
-**7. Summary for Junior Developer**
+**7. Summary for Developer**
 
 1. **Data is Key:** Understand the SharePoint list structure (master vs. transactional) and how Lookup columns connect them. This drives the app's data display and flow logic. (See *List Structure Guide*)
 2. **Follow the UI Spec:** Adhere to the Canvas App screen layouts, navigation flow, and component usage defined in the specs. (See *Canvas App Specification*)
