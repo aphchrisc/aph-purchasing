@@ -72,23 +72,32 @@ Confirm your user account has the necessary permissions. Request access if you d
 
 ---
 
-**4. Initial Environment Setup, Solution Alignment, and Repository Initialization**
+**REVISED SECTION 4 of APH P - Developer Onboarding & Setup Guide**
 
-Follow these steps carefully. This process aligns existing work with the documented standards and sets up version control. **Do these steps in order.**
+---
 
-1.  **Clone the Repository:**
-    *   Open your preferred terminal (like Git Bash, PowerShell, or VS Code Terminal).
-    *   Navigate (`cd`) to the directory where you want to store your development projects locally (e.g., `C:\Projects\`).
-    *   Clone the designated Git repository using the URL provided by your Admin/Lead:
-        ```bash
-        git clone <repository_url> aph-purchasing
-        # Example: git clone https://github.com/aphchrisc/aph-purchasing.git aph-purchasing
-        ```
-    *   Navigate into the newly cloned directory:
-        ```bash
-        cd aph-purchasing
-        ```
-    *   *(If the repository already contained files you don't need, like pseudo-code, you might want to remove them now before proceeding. Consult your lead if unsure. Example: `rm -rf solutions pnp`)*
+**4. Initial Environment Setup, Solution Alignment, and **NEW** Repository Initialization**
+
+Follow these steps carefully. This process aligns existing work with the documented standards, sets up **a new Git repository** for version control, and populates it with the actual solution source code from the Dev environment. **Do these steps in order.**
+
+1.  **Create and Clone the **NEW** Git Repository:**
+    *   **Action Required:** A **new, empty Git repository** needs to be created for this project on the designated platform (e.g., GitHub, Azure Repos). Coordinate with your Admin/Lead to:
+        *   Get the repository created (e.g., named `aph-purchasing-solution`).
+        *   Ensure you have **Write/Admin permissions** to this new repository.
+        *   Get the **URL** of the new, empty repository.
+    *   **Local Setup:**
+        *   Open your preferred terminal (like Git Bash, PowerShell, or VS Code Terminal).
+        *   Navigate (`cd`) to the directory where you want to store your development projects locally (e.g., `C:\Projects\`).
+        *   Clone the **new, empty** repository using the URL provided:
+            ```bash
+            # Replace <new_repository_url> with the URL of the NEW repository
+            git clone <new_repository_url> aph-purchasing
+            ```
+        *   Navigate into the newly cloned, empty directory:
+            ```bash
+            cd aph-purchasing
+            ```
+        *   *(The repository will be empty except possibly for a default README or .gitignore if created via the platform UI).*
 2.  **Authenticate PAC CLI:** Connect the Power Platform CLI tool to the **APH Dev** environment.
     ```bash
     # Replace URL with the actual Dev environment URL if different
@@ -105,47 +114,31 @@ Follow these steps carefully. This process aligns existing work with the documen
         *   Click **+ New solution**.
         *   **Display Name:** `APH Purchasing`
         *   **Name:** `APH_Purchasing` (This internal name is important)
-        *   **Publisher:** Click the dropdown. Select an existing publisher with the prefix `aph`. **If none exists, STOP** and ask your Admin/Lead to create one first. Using the correct publisher is critical. Do **NOT** use the "(default)" publisher.
+        *   **Publisher:** Select the appropriate publisher with the `aph` prefix. **If none exists, STOP** and ask your Admin/Lead to create one first. Using the correct publisher is critical. Do **NOT** use the "(default)" publisher.
         *   **Version:** `1.0.0.0`
         *   Click **Create**. Wait for it to be created.
     *   **If the Solution DOES Exist:** Click on the existing `APH_Purchasing` unmanaged solution to open it. Ensure it's using the correct `aph` publisher.
 4.  **Verify/Create Canvas App *within the Solution*:**
     *   While inside the `APH_Purchasing` solution in the Maker Portal:
-    *   Look under the **Apps** section on the left (filter if needed). Check if the main Canvas App (e.g., `APH Purchasing App`) exists *here*.
+    *   Look under the **Apps** section on the left. Check if the main Canvas App (e.g., `APH Purchasing App`) exists *here*.
     *   **If the App Does NOT Exist *within the solution*:**
-        *   Click **+ New** (at the top) > **App** > **Canvas app**.
-        *   App name: `APH Purchasing App` (or agreed name).
-        *   Format: **Tablet**.
-        *   Click **Create**. The app studio will open.
-        *   **IMPORTANT:** Add a single Label control to the blank screen.
-        *   Click **File** > **Save**. Confirm the name.
-        *   Click **Publish** > **Publish this version**.
-        *   Close the app studio tab. This ensures the app asset is properly created within the solution. You will build the real app later.
-    *   **If the App DOES Exist *within the solution*:** Confirm it's the correct app you intend to develop.
+        *   Click **+ New** > **App** > **Canvas app**.
+        *   App name: `APH Purchasing App`. Format: **Tablet**. Click **Create**.
+        *   **IMPORTANT:** Add a single Label, **Save** the app, and **Publish** it once. Close the studio. This creates the app asset within the solution.
+    *   **If the App DOES Exist *within the solution*:** Confirm it's the correct app.
 5.  **Verify/Add Flows *to the Solution*:**
     *   While inside the `APH_Purchasing` solution:
-    *   Look under **Cloud flows** on the left. Check if the core flows (Initialize Request, Assign Approver & Notify, etc.) are listed here.
-    *   **If Flows Exist BUT *Outside* this Solution:**
-        *   Click **Add existing** (at the top) > **Automation** > **Cloud flow**.
-        *   Select the **From Dataverse** tab (or 'Outside Solutions').
-        *   Find the relevant existing flows, select them, and click **Add**. This links them to this solution.
-    *   **If Flows Do NOT Exist At All:** That's okay for now. You will create them later (**+ New** > **Automation** > ...) *directly within this solution* based on the "Flow Specifications" document.
+    *   Look under **Cloud flows**. Check if the core flows are listed here.
+    *   **If Flows Exist BUT *Outside* this Solution:** Click **Add existing** > **Automation** > **Cloud flow**. Select the **From Dataverse** / 'Outside Solutions' tab. Find and add the relevant flows.
+    *   **If Flows Do NOT Exist At All:** You will create them later (**+ New** > **Automation**...) *directly within this solution*.
     *   **If Flows DO Exist *within the solution*:** Confirm they are the correct flows.
 6.  **Verify/Modify/Create SharePoint Lists:**
-    *   **Goal:** Ensure the SharePoint lists in the Dev site exactly match the "SharePoint List Structure Guide" document (provided separately).
+    *   **Goal:** Ensure SharePoint lists in Dev exactly match the "SharePoint List Structure Guide" document.
     *   Navigate to the **Dev SharePoint site** (`https://aph.sharepoint.com/sites/APH-Purchasing`).
     *   **Systematically go through EACH list defined in the guide:**
-        *   **Check Existence:** Does the list (e.g., `APH_PurchaseRequests`) exist?
-        *   **If YES (Verify & Modify):**
-            *   Go to that list's **List settings**.
-            *   **Compare every column** against the guide: Display Name, **Type**, **Internal Name** (check URL), Required, Choices, Lookups, Person settings, Indexing, Attachments.
-            *   **Modify the existing list** to **exactly match** the guide. Be cautious changing types if data exists. Consult lead if unsure.
-        *   **If NO (Create):**
-            *   Click **+ New** > **List** > **Blank list**.
-            *   Name it exactly (e.g., `APH_Vendors`). Create.
-            *   Go to **List settings**.
-            *   **Add EACH column** precisely as defined in the guide (Name, Type, Settings).
-            *   Enable Attachments, set up Indexing per the guide.
+        *   **Check Existence:** Does the list exist?
+        *   **If YES (Verify & Modify):** Go to **List settings**. **Meticulously compare and modify** every column (Name, Type, Internal Name, Required, Choices, Lookups, Indexing, Attachments) to **exactly match** the guide. Be careful changing types if data exists.
+        *   **If NO (Create):** Click **+ New** > **List** > **Blank list**. Name it exactly. Go to **List settings**. **Add EACH column** precisely as defined in the guide. Enable Attachments/Indexing per the guide.
     *   **Result:** All required SharePoint lists now exist and match the documentation.
 7.  **Extract *Actual* SharePoint Schema (PnP):**
     *   Capture the verified schema from the Dev SharePoint site.
@@ -158,11 +151,11 @@ Follow these steps carefully. This process aligns existing work with the documen
         # Connect interactively to the Dev SharePoint site
         Connect-PnPOnline -Url "https://aph.sharepoint.com/sites/APH-Purchasing" -Interactive # Use correct Dev site URL
 
-        # Extract the schema of the verified/created lists into an XML file
+        # Extract the schema into an XML file in the pnp folder
         Get-PnPProvisioningTemplate -Out "./pnp/APH_Purchasing_SiteTemplate.xml" `
             -Lists "APH_PurchaseRequests", "APH_FundingLines", "APH_Approvals", "APH_Vendors", "APH_CityLocations", "APH_ObjectCodes", "APH_CostCentres", "APH_SystemSettings", "APH_PurchasingAdmins" `
             -Handlers Lists, Fields, ContentTypes, Views `
-            -ExcludeHandlers TermGroups, SiteSecurity, ComposedLook # Common exclusions `
+            -ExcludeHandlers TermGroups, SiteSecurity, ComposedLook `
             -Force # Overwrite if file exists
 
         Write-Host "SharePoint schema extracted to ./pnp/APH_Purchasing_SiteTemplate.xml"
@@ -170,16 +163,14 @@ Follow these steps carefully. This process aligns existing work with the documen
         ```
     *   This `APH_Purchasing_SiteTemplate.xml` file now accurately represents your Dev SharePoint lists.
 8.  **Export the *Actual* Solution from Dev:**
-    *   Go back to the Maker Portal (`make.powerapps.com`) > **APH Dev** Environment > **Solutions**.
+    *   Go back to the Maker Portal > **APH Dev** Environment > **Solutions**.
     *   Select the `APH_Purchasing` **unmanaged** solution.
-    *   Click **Export solution**.
-    *   Click **Publish** first (to ensure all changes are included), wait for it to complete.
-    *   Click **Next**.
-    *   Select **Unmanaged** as the export type.
-    *   Click **Export**. Wait for the export process.
-    *   Download the exported `.zip` file (e.g., `APH_Purchasing_1_0_0_0.zip`) and save it into your local `aph-purchasing/packages/` folder (create the `packages` folder if it doesn't exist). Note the exact filename.
-9.  **Unpack the Solution:**
-    *   In your terminal (inside the `aph-purchasing` folder), create the source directory:
+    *   Click **Export solution**. **Publish** first, wait. Click **Next**. Select **Unmanaged**. Click **Export**.
+    *   Download the `.zip` file (e.g., `APH_Purchasing_1_0_0_0.zip`).
+    *   Create the `packages` folder locally if it doesn't exist: `mkdir packages`.
+    *   Save the downloaded `.zip` file into your local `aph-purchasing/packages/` folder. Note its exact filename.
+9.  **Unpack the Solution into Local Repo:**
+    *   In your terminal (inside the `aph-purchasing` folder), create the source directory structure:
         ```bash
         mkdir -p solutions/APH_Purchasing/src
         ```
@@ -188,30 +179,37 @@ Follow these steps carefully. This process aligns existing work with the documen
         # Replace ZIP_FILENAME.zip with the actual filename you downloaded
         pac solution unpack --zipfile ./packages/ZIP_FILENAME.zip --folder ./solutions/APH_Purchasing/src/ --packagetype Both
         ```
-10. **Commit Initial Source Code to Git:**
-    *   Stage all the new and modified files (unpacked solution, PnP template, etc.). In your terminal:
+    *   This populates your local `solutions/APH_Purchasing/src/` directory with the actual source code (YAML, JSON, etc.).
+10. **Commit Initial Source Code to **NEW** Git Repository:**
+    *   **IMPORTANT:** Before the first commit, ensure a `.gitignore` file exists in the root of your `aph-purchasing` folder to exclude unnecessary files (like the `.zip` in `packages/`, local settings, etc.). Create one if needed (search online for standard Power Platform `.gitignore` examples).
+    *   Stage all the newly created/unpacked files:
         ```bash
         git add .
         ```
-    *   Commit the baseline:
+    *   Commit the initial baseline:
         ```bash
-        git commit -m "Initialize repository from Dev environment solution and verified SP schema"
+        git commit -m "Initial commit: Add solution source from Dev and verified SP schema"
         ```
-    *   Push to the central repository (consult lead on whether to push to `main` or `develop` initially):
+    *   Push the changes to the **new** remote repository. You might need to set the upstream branch first if cloning an empty repo:
         ```bash
-        git push origin main # Or develop
+        # Replace 'main' with 'develop' if that's your primary branch
+        git push -u origin main
         ```
-    *   **Setup Complete:** The Git repository is now initialized with the actual source code and aligned SharePoint schema from the Dev environment.
+    *   **Setup Complete:** The **new** Git repository is now initialized with the actual source code and aligned SharePoint schema from the Dev environment.
 
 ---
 
-**5. Ongoing Developer Workflow**
+**REVISED SECTION 5 of APH P - Developer Onboarding & Setup Guide**
 
-Now that the repository reflects the Dev environment, follow this process for development:
+---
+
+**5. Ongoing Developer Workflow (Using the New Repository)**
+
+Now that the **new** repository is initialized and reflects the Dev environment, follow this standard process for development:
 
 1.  **Start New Work:**
-    *   Ensure you are on the main development branch: `git checkout develop` (or `main` if that's used).
-    *   Pull the latest changes: `git pull`.
+    *   Ensure you are on the main development branch (likely `main` or `develop` as decided for your new repo): `git checkout develop`.
+    *   Pull the latest changes (important if others start contributing): `git pull`.
     *   Create a new branch for your task: `git checkout -b feature/SPR-XXX-MyTaskName`.
 2.  **Make Changes:**
     *   **Canvas App:** Edit the **YAML files** located in `solutions/APH_Purchasing/src/CanvasApps/...` using VS Code with the Power Platform Tools extension.
@@ -229,6 +227,10 @@ Now that the repository reflects the Dev environment, follow this process for de
 6.  **Push and Create Pull Request:**
     *   Push your feature branch to the remote repository: `git push origin feature/SPR-XXX-MyTaskName`.
     *   Go to the Git repository interface (e.g., GitHub) and create a Pull Request (PR) to merge your branch into the `develop` branch (or `main`). Your changes will be reviewed before merging.
+
+---
+
+This revised Section 4 and 5 now explicitly guides the developer through creating a new repository and populating it correctly from the existing Dev environment resources.
 
 ---
 
