@@ -1,28 +1,22 @@
+**APH - Developer Onboarding & Setup Guide**
 
+*A step-by-step guide to configure your local environment, connect to the APH Purchasing Power App solution in Development, verify and align existing components, and initialize the Git repository with the current solution source code.*
 
-# **APH Purchasing Power App - Complete Documentation Suite**
-
-**Target Audience:** Power Platform Developer
-
-**Goal:** Provide comprehensive guidance to enable productive development and understanding of the APH Purchasing solution with minimal friction.
-
-**APH P - Developer Onboarding & Setup Guide**
-
-*A step-by-step guide to get up and running quickly with the APH Purchasing Power App solution.
+**Goal:** To establish a consistent development environment, bring the existing solution components under version control, and prepare for ongoing feature development following best practices.
 
 ---
 
 **1. Prerequisites & Tools**
 
-Ensure you have the following tools installed and accessible:
+Ensure you have the following tools installed and accessible before you begin:
 
 | Tool                             | Purpose                                         | Install Instructions                                                                                         | Notes                               |
 | :------------------------------- | :---------------------------------------------- | :----------------------------------------------------------------------------------------------------------- | :---------------------------------- |
-| Node.js (Latest LTS)             | Required by PAC CLI                             | [https://nodejs.org](https://nodejs.org)                                                                        | Verify version with `node -v`     |
+| Node.js (Latest LTS)             | Required by some PAC CLI functionalities        | [https://nodejs.org](https://nodejs.org)                                                                        | Verify version with `node -v`     |
 | Power Platform CLI (pac)         | Pack/unpack solutions, Canvas apps, admin tasks | Follow official guide:[Install PAC CLI](https://learn.microsoft.com/en-us/power-platform/developer/cli/install) | Use `pac install latest` or MSI   |
-| PnP PowerShell                   | Provision SharePoint site structure             | From PS:`Install-Module PnP.PowerShell -Scope CurrentUser`                                                 | Requires PowerShell 7+              |
+| PnP PowerShell                   | Extract/Apply SharePoint site structure         | From PS:`Install-Module PnP.PowerShell -Scope CurrentUser`                                                 | Requires PowerShell 7+              |
 | Visual Studio Code               | Code editor                                     | [https://code.visualstudio.com](https://code.visualstudio.com)                                                  | Recommended IDE                     |
-| Git                              | Version control                                 | [https://git-scm.com](https://git-scm.com)                                                                      | For cloning the repository          |
+| Git                              | Version control                                 | [https://git-scm.com](https://git-scm.com)                                                                      | For version control setup         |
 | Power Platform VS Code Extension | Canvas App (YAML) & PCF editing                 | In VS Code Marketplace: “Power Platform Tools”                                                             | Essential for Canvas development    |
 | PowerShell 7+                    | Run PnP provisioning & other scripts            | [Install PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell)      | Needed for modern PS features & PnP |
 
@@ -30,152 +24,265 @@ Ensure you have the following tools installed and accessible:
 
 **2. Access & Permissions**
 
-Confirm your user account has the necessary permissions:
+Confirm your user account has the necessary permissions. Request access if you don't have it:
 
-1. **Azure AD Groups:** Ensure your account is added to:
-   * `APH_Developers` (Grants Environment Maker role in Dev/Test)
-   * `APH_Requestors` (For submitting test requests within the app)
-   * *(Ask Admin/Lead if other groups are needed)*
-2. **SharePoint Site:** Request **Contribute** (or Full Control for Dev) access to the APH Purchasing SharePoint site: `https://aph.sharepoint.com/sites/APH-Purchasing`.
-3. **Power Platform Environments:**
-   * **Dev:** Environment Maker role.
-   * **Test:** Environment Maker role (or specific testing role).
-   * **Prod:** Basic User / Run-only permissions (typically).
-4. **Service Accounts:** You likely won't need direct access, but be aware flows use connections authenticated via service accounts (e.g., `APH_SP_Connection`, `APH_O365_Outlook`). Credentials stored securely (e.g., Azure Key Vault).
-
----
-
-**3. Repository & Folder Structure**
-
-The project code should be stored in a Git repository.
-
-```
-aph-purchasing/
-├─ .github/                # CI/CD workflows (GitHub Actions - for DevOps reference)
-├─ flows/                  # Power Automate .json exports (raw backup/reference ONLY)
-├─ environmentvariables/   # Env var definitions (JSON - reference ONLY)
-├─ pnp/                    # PnP provisioning templates (.xml) & scripts (.ps1)
-│   ├─ APH_Purchasing_SiteTemplate.xml
-│   └─ provision_sharepoint.ps1
-├─ solutions/              # Source code for Power Platform solutions
-│   └─ APH_Purchasing/       # Main solution folder
-│       ├─ src/
-│       │   ├─ CanvasApps/     # Unpacked Canvas App source (YAML)
-│       │   │   └─ aph_aphpurchasing_XXXXX/  # Folder name includes AppId
-│       │   │       ├─ *.fx.yaml
-│       │   │       └─ ... (other YAML/JSON files)
-│       │   ├─ WebResources/
-│       │   ├─ OptionSets/
-│       │   └─ Workflows/      # Flow JSON definitions (part of the solution)
-│       ├─ Solution.xml        # Core solution definition
-│       └─ customization.xml   # Solution components definitions
-├─ packages/               # Stores packed solution files (managed/unmanaged .zip)
-├─ scripts/                # Helper scripts (e.g., local build/pack)
-└─ README.md               # Project overview
-```
+1.  **Azure AD Groups:** Ensure your account is added to:
+    *   `APH_Developers` (Grants Environment Maker role in Dev/Test)
+    *   `APH_Requestors` (For submitting test requests within the app)
+    *   *(Ask Admin/Lead if other groups are needed)*
+2.  **SharePoint Site:** Request **Contribute** (or Full Control for Dev) access to the APH Purchasing Development SharePoint site: `https://aph.sharepoint.com/sites/APH-Purchasing` (Confirm URL with Admin/Lead).
+3.  **Power Platform Environments:**
+    *   **Dev:** Environment Maker role. URL: `https://aph-dev.crm.dynamics.com` (Confirm URL with Admin/Lead).
+    *   **Test:** Environment Maker role (or specific testing role).
+    *   **Prod:** Basic User / Run-only permissions (typically).
+4.  **Git Repository Access:** Request **Write** access to the designated central Git repository for this project (e.g., `https://github.com/aphchrisc/aph-purchasing.git`). Confirm repository URL with Admin/Lead.
+5.  **Service Accounts:** Be aware that deployed flows use connections authenticated via service accounts (e.g., `APH_SP_Connection`, `APH_O365_Outlook`). You typically won't need direct credentials, but understanding this is important for context.
 
 ---
 
-**4. Environment Configuration & Setup**
+**3. Understanding the Starting Point & Goal: Solution and Version Control**
 
-Follow these steps to set up your local development environment and connect to the Power Platform Dev environment.
+*   **Current State:** Some components for the APH Purchasing solution may already exist in the **Dev Power Platform environment** and the **Dev SharePoint site**. However, these might not be fully aligned with the final documented specifications, and they likely aren't yet organized within a single Power Platform Solution or tracked in Git version control.
+*   **The Goal:** Your primary goal is to:
+    1.  Establish a formal Power Platform **Solution** named `APH_Purchasing` (or confirm/use the existing one).
+    2.  Ensure the Canvas App and all Power Automate Flows are **solution-aware** (i.e., part of that Solution).
+    3.  Verify, modify, and create SharePoint lists in the Dev site to **exactly match** the specifications in the "SharePoint List Structure Guide" document (provided separately).
+    4.  Initialize the **Git repository** (`aph-purchasing`) with the *actual source code* of the solution (unpacked YAML, Flow JSON) and the *correct* SharePoint schema definition (PnP XML). This makes Git the single source of truth going forward.
+*   **Git Repository:** The designated Git repository might currently be empty or contain conceptual examples. You will populate it with the real code from the Dev environment.
+*   **Target Folder Structure (Once Initialized):** Your local Git repository should eventually look like this:
 
-1. **Authenticate PAC CLI:** Connect the CLI to your APH Dev environment.
-
-   ```bash
-   # Replace URL with the actual Dev environment URL
-   pac auth create --name APH-Dev --url https://aph-dev.crm.dynamics.com --kind Dataverse 
-   pac auth select --name APH-Dev
-   pac auth list # Verify APH-Dev is listed and active (*)
-   ```
-2. **Connect VS Code:**
-
-   * Open the cloned `aph-purchasing` repository in VS Code.
-   * Install the "Power Platform Tools" extension if you haven't already.
-   * In the VS Code terminal, run `pac auth select --name APH-Dev` again if needed.
-   * Use the Power Platform extension's features (e.g., view solutions, connect to environment).
-3. **Provision SharePoint Site (One-time setup):**
-
-   * The SharePoint lists are the backend data source. Ensure they exist in the Dev SharePoint site.
-   * Navigate to the `pnp` folder in your terminal: `cd pnp`
-   * Modify `provision_sharepoint.ps1` if needed (e.g., update site URL variable).
-   * Run the script using PowerShell 7+:
-     ```powershell
-     # Ensure you are in the pnp directory
-     # The script should handle connecting and applying the template
-     ./provision_sharepoint.ps1 -SiteUrl "https://aph.sharepoint.com/sites/APH-Purchasing" 
-     ```
-   * *Note:* This script uses `Connect-PnPOnline -Interactive` for login and applies `APH_Purchasing_SiteTemplate.xml`. Verify list creation in SharePoint.
-4. **Local Scripting Environment Variables (Optional):**
-
-   * The `pnp/provision_sharepoint.ps1` script might use environment variables. If so, create a `.env` file in the `pnp` directory (copy from `.env.example` if provided) for local script execution:
-     ```env
-     # Example .env file content for PnP script
-     APH_SITE_URL=https://aph.sharepoint.com/sites/APH-Purchasing 
-     # Add other variables if the script uses them
-     ```
-   * **Important:** This `.env` file is *only* for local scripts like the PnP provisioning one. It does *not* configure the Power Platform solution's Environment Variables.
+    ```
+    aph-purchasing/                 <- Your main project folder
+    ├─ .github/                   # (Optional) CI/CD workflows
+    ├─ pnp/                       # PnP provisioning templates & scripts
+    │   └─ APH_Purchasing_SiteTemplate.xml # Generated from *verified* Dev SP Site
+    ├─ solutions/                 # Source code for Power Platform solutions
+    │   └─ APH_Purchasing/          # Main solution folder (from export)
+    │       ├─ src/                 # Unpacked source code lives here
+    │       │   ├─ CanvasApps/      # Canvas App YAML source
+    │       │   ├─ Workflows/       # Flow JSON definitions
+    │       │   ├─ EnvironmentVariableDefinitions/
+    │       │   └─ ... (Other component folders like ConnectionReferences)
+    │       ├─ Solution.xml         # Solution definition files
+    │       └─ customization.xml
+    ├─ packages/                  # Stores exported solution .zip files (e.g., backups)
+    ├─ scripts/                   # (Optional) Helper scripts
+    └─ README.md                  # Project overview (Update this!)
+    ```
 
 ---
 
-**5. Developer Workflow Summary**
+**4. Initial Environment Setup, Solution Alignment, and Repository Initialization**
 
-Your typical workflow will involve:
+Follow these steps carefully. This process aligns existing work with the documented standards and sets up version control. **Do these steps in order.**
 
-1. **Get Latest Code:** `git pull` on the `develop` branch.
-2. **Create Feature Branch:** `git checkout -b feature/SPR-XXX-MyFeature`
-3. **Work on Solution Components:**
-   * **Canvas App:**
-     * Unpack: `pac canvas unpack --msapp <path-to-downloaded-or-solution-msapp> --sources <target-yaml-folder>` (Typically done once initially, then commit YAML source).
-     * Edit YAML files in VS Code (`solutions/APH_Purchasing/src/CanvasApps/...`).
-     * Pack (to test): `pac canvas pack --sources <path-to-yaml-folder> --msapp <output-msapp-file>`
-   * **Flows:** Edit directly within the solution in the Power Platform Maker Portal (make.powerapps.com) via the APH-Dev environment. Changes are automatically saved within the solution definition.
-   * **Environment Variables / Other Components:** Modify via the solution explorer in the Maker Portal.
-4. **Commit Changes:** `git add .`, `git commit -m "Description of changes"`
-5. **Test:** Run the Canvas App (Preview mode), trigger flows, check data in SharePoint within the Dev environment.
-6. **Push & Create Pull Request:** `git push origin feature/SPR-XXX-MyFeature`, create a PR to merge into `develop`.
+1.  **Clone the Repository:**
+    *   Open your preferred terminal (like Git Bash, PowerShell, or VS Code Terminal).
+    *   Navigate (`cd`) to the directory where you want to store your development projects locally (e.g., `C:\Projects\`).
+    *   Clone the designated Git repository using the URL provided by your Admin/Lead:
+        ```bash
+        git clone <repository_url> aph-purchasing
+        # Example: git clone https://github.com/aphchrisc/aph-purchasing.git aph-purchasing
+        ```
+    *   Navigate into the newly cloned directory:
+        ```bash
+        cd aph-purchasing
+        ```
+    *   *(If the repository already contained files you don't need, like pseudo-code, you might want to remove them now before proceeding. Consult your lead if unsure. Example: `rm -rf solutions pnp`)*
+2.  **Authenticate PAC CLI:** Connect the Power Platform CLI tool to the **APH Dev** environment.
+    ```bash
+    # Replace URL with the actual Dev environment URL if different
+    pac auth create --name APH-Dev --url https://aph-dev.crm.dynamics.com --kind Dataverse
+    pac auth select --name APH-Dev # Make sure APH-Dev is selected
+    pac auth list # Verify APH-Dev is listed and marked with *
+    ```
+3.  **Verify/Create the Power Platform Solution:**
+    *   Open a web browser and go to the Power Platform Maker Portal: `https://make.powerapps.com`.
+    *   Select the **APH Dev** environment from the top-right environment picker.
+    *   Navigate to **Solutions** on the left-hand menu.
+    *   Look for an **unmanaged** solution named `APH_Purchasing`.
+    *   **If the Solution Does NOT Exist:**
+        *   Click **+ New solution**.
+        *   **Display Name:** `APH Purchasing`
+        *   **Name:** `APH_Purchasing` (This internal name is important)
+        *   **Publisher:** Click the dropdown. Select an existing publisher with the prefix `aph`. **If none exists, STOP** and ask your Admin/Lead to create one first. Using the correct publisher is critical. Do **NOT** use the "(default)" publisher.
+        *   **Version:** `1.0.0.0`
+        *   Click **Create**. Wait for it to be created.
+    *   **If the Solution DOES Exist:** Click on the existing `APH_Purchasing` unmanaged solution to open it. Ensure it's using the correct `aph` publisher.
+4.  **Verify/Create Canvas App *within the Solution*:**
+    *   While inside the `APH_Purchasing` solution in the Maker Portal:
+    *   Look under the **Apps** section on the left (filter if needed). Check if the main Canvas App (e.g., `APH Purchasing App`) exists *here*.
+    *   **If the App Does NOT Exist *within the solution*:**
+        *   Click **+ New** (at the top) > **App** > **Canvas app**.
+        *   App name: `APH Purchasing App` (or agreed name).
+        *   Format: **Tablet**.
+        *   Click **Create**. The app studio will open.
+        *   **IMPORTANT:** Add a single Label control to the blank screen.
+        *   Click **File** > **Save**. Confirm the name.
+        *   Click **Publish** > **Publish this version**.
+        *   Close the app studio tab. This ensures the app asset is properly created within the solution. You will build the real app later.
+    *   **If the App DOES Exist *within the solution*:** Confirm it's the correct app you intend to develop.
+5.  **Verify/Add Flows *to the Solution*:**
+    *   While inside the `APH_Purchasing` solution:
+    *   Look under **Cloud flows** on the left. Check if the core flows (Initialize Request, Assign Approver & Notify, etc.) are listed here.
+    *   **If Flows Exist BUT *Outside* this Solution:**
+        *   Click **Add existing** (at the top) > **Automation** > **Cloud flow**.
+        *   Select the **From Dataverse** tab (or 'Outside Solutions').
+        *   Find the relevant existing flows, select them, and click **Add**. This links them to this solution.
+    *   **If Flows Do NOT Exist At All:** That's okay for now. You will create them later (**+ New** > **Automation** > ...) *directly within this solution* based on the "Flow Specifications" document.
+    *   **If Flows DO Exist *within the solution*:** Confirm they are the correct flows.
+6.  **Verify/Modify/Create SharePoint Lists:**
+    *   **Goal:** Ensure the SharePoint lists in the Dev site exactly match the "SharePoint List Structure Guide" document (provided separately).
+    *   Navigate to the **Dev SharePoint site** (`https://aph.sharepoint.com/sites/APH-Purchasing`).
+    *   **Systematically go through EACH list defined in the guide:**
+        *   **Check Existence:** Does the list (e.g., `APH_PurchaseRequests`) exist?
+        *   **If YES (Verify & Modify):**
+            *   Go to that list's **List settings**.
+            *   **Compare every column** against the guide: Display Name, **Type**, **Internal Name** (check URL), Required, Choices, Lookups, Person settings, Indexing, Attachments.
+            *   **Modify the existing list** to **exactly match** the guide. Be cautious changing types if data exists. Consult lead if unsure.
+        *   **If NO (Create):**
+            *   Click **+ New** > **List** > **Blank list**.
+            *   Name it exactly (e.g., `APH_Vendors`). Create.
+            *   Go to **List settings**.
+            *   **Add EACH column** precisely as defined in the guide (Name, Type, Settings).
+            *   Enable Attachments, set up Indexing per the guide.
+    *   **Result:** All required SharePoint lists now exist and match the documentation.
+7.  **Extract *Actual* SharePoint Schema (PnP):**
+    *   Capture the verified schema from the Dev SharePoint site.
+    *   In your local terminal (inside the `aph-purchasing` folder), create the `pnp` directory:
+        ```bash
+        mkdir pnp
+        ```
+    *   Run the following PnP PowerShell commands (using PowerShell 7+):
+        ```powershell
+        # Connect interactively to the Dev SharePoint site
+        Connect-PnPOnline -Url "https://aph.sharepoint.com/sites/APH-Purchasing" -Interactive # Use correct Dev site URL
 
-**Important:** You primarily work with the *unmanaged* solution in the Dev environment. Packing/Importing *managed* solutions is part of the deployment process (see Deployment Guide).
+        # Extract the schema of the verified/created lists into an XML file
+        Get-PnPProvisioningTemplate -Out "./pnp/APH_Purchasing_SiteTemplate.xml" `
+            -Lists "APH_PurchaseRequests", "APH_FundingLines", "APH_Approvals", "APH_Vendors", "APH_CityLocations", "APH_ObjectCodes", "APH_CostCentres", "APH_SystemSettings", "APH_PurchasingAdmins" `
+            -Handlers Lists, Fields, ContentTypes, Views `
+            -ExcludeHandlers TermGroups, SiteSecurity, ComposedLook # Common exclusions `
+            -Force # Overwrite if file exists
+
+        Write-Host "SharePoint schema extracted to ./pnp/APH_Purchasing_SiteTemplate.xml"
+        Disconnect-PnPOnline
+        ```
+    *   This `APH_Purchasing_SiteTemplate.xml` file now accurately represents your Dev SharePoint lists.
+8.  **Export the *Actual* Solution from Dev:**
+    *   Go back to the Maker Portal (`make.powerapps.com`) > **APH Dev** Environment > **Solutions**.
+    *   Select the `APH_Purchasing` **unmanaged** solution.
+    *   Click **Export solution**.
+    *   Click **Publish** first (to ensure all changes are included), wait for it to complete.
+    *   Click **Next**.
+    *   Select **Unmanaged** as the export type.
+    *   Click **Export**. Wait for the export process.
+    *   Download the exported `.zip` file (e.g., `APH_Purchasing_1_0_0_0.zip`) and save it into your local `aph-purchasing/packages/` folder (create the `packages` folder if it doesn't exist). Note the exact filename.
+9.  **Unpack the Solution:**
+    *   In your terminal (inside the `aph-purchasing` folder), create the source directory:
+        ```bash
+        mkdir -p solutions/APH_Purchasing/src
+        ```
+    *   Unpack the downloaded zip file into the `src` directory:
+        ```bash
+        # Replace ZIP_FILENAME.zip with the actual filename you downloaded
+        pac solution unpack --zipfile ./packages/ZIP_FILENAME.zip --folder ./solutions/APH_Purchasing/src/ --packagetype Both
+        ```
+10. **Commit Initial Source Code to Git:**
+    *   Stage all the new and modified files (unpacked solution, PnP template, etc.). In your terminal:
+        ```bash
+        git add .
+        ```
+    *   Commit the baseline:
+        ```bash
+        git commit -m "Initialize repository from Dev environment solution and verified SP schema"
+        ```
+    *   Push to the central repository (consult lead on whether to push to `main` or `develop` initially):
+        ```bash
+        git push origin main # Or develop
+        ```
+    *   **Setup Complete:** The Git repository is now initialized with the actual source code and aligned SharePoint schema from the Dev environment.
+
+---
+
+**5. Ongoing Developer Workflow**
+
+Now that the repository reflects the Dev environment, follow this process for development:
+
+1.  **Start New Work:**
+    *   Ensure you are on the main development branch: `git checkout develop` (or `main` if that's used).
+    *   Pull the latest changes: `git pull`.
+    *   Create a new branch for your task: `git checkout -b feature/SPR-XXX-MyTaskName`.
+2.  **Make Changes:**
+    *   **Canvas App:** Edit the **YAML files** located in `solutions/APH_Purchasing/src/CanvasApps/...` using VS Code with the Power Platform Tools extension.
+    *   **Flows, Environment Variables, Connection References, Other Components:** Modify these components directly within the **`APH_Purchasing` unmanaged solution** via the **Dev Maker Portal** (`make.powerapps.com`).
+3.  **Synchronize Changes from Dev to Local Git:**
+    *   **CRITICAL STEP:** *After* making changes in the Maker Portal (Flows, Env Vars etc.), you MUST bring those changes into your local Git repository.
+    *   **Export:** Go to Solutions in Dev, select `APH_Purchasing`, click **Export Solution** (Publish first, then Export **Unmanaged**). Download the `.zip` file to your `packages` folder (you can overwrite the previous one).
+    *   **Unpack:** In your terminal, run `pac solution unpack ...` again, pointing to the newly exported `.zip` file and unpacking into the *same* `solutions/APH_Purchasing/src/` folder. This will update the local files (like Flow JSON) to match what's in the Dev environment.
+4.  **Review and Commit Local Changes:**
+    *   Use `git status` and `git diff` in your terminal or VS Code to see all changes (both YAML edits and unpacked changes from Dev).
+    *   Stage the relevant files: `git add .` (or add specific files).
+    *   Commit the changes to your feature branch: `git commit -m "Implemented feature X / Fixed bug Y"`.
+5.  **Test:**
+    *   Thoroughly test your changes in the **Dev environment** (Preview Canvas App, trigger Flows, check SharePoint data).
+6.  **Push and Create Pull Request:**
+    *   Push your feature branch to the remote repository: `git push origin feature/SPR-XXX-MyTaskName`.
+    *   Go to the Git repository interface (e.g., GitHub) and create a Pull Request (PR) to merge your branch into the `develop` branch (or `main`). Your changes will be reviewed before merging.
 
 ---
 
 **6. Testing & Debugging**
 
-1. **Canvas App:**
-   * Use the Preview (Play) button in the Power Apps Studio.
-   * Use `Monitor` tool (accessible from App editor) to trace formulas and connector calls.
-   * Check `cmpErrorBanner` component for validation messages.
-2. **Flows:**
-   * Open the flow runs history in the Power Automate portal (within the context of the solution).
-   * Examine inputs/outputs of each action step.
-   * Check for failed runs and error messages.
-3. **Data:** Verify data creation/updates directly in the SharePoint lists (`APH_PurchaseRequests`, `APH_FundingLines`, `APH_Approvals`).
-4. **Test Data:** Use the seeded master lists (Vendors, Locations etc.). Create test `APH_PurchaseRequests` via the Canvas app as a user in the `APH_Requestors` group. Follow UAT scenarios.
+1.  **Canvas App:**
+    *   Edit the unpacked **YAML source files** in VS Code.
+    *   Test changes primarily using the **Preview (Play) button** within the App editor in the **Dev environment**.
+    *   Use the **Monitor** tool (accessible from App editor in Dev: Advanced tools > Monitor) to trace formulas, network calls, and diagnose issues during a live app session.
+    *   Utilize `Notify()` function calls within your formulas to display temporary messages during debugging.
+    *   Check the `cmpErrorBanner` component (if implemented) for application-level error messages.
+2.  **Flows:**
+    *   Edit flows within the solution in the **Dev environment Maker Portal**.
+    *   Test by triggering the flow (either through the app action or manually if applicable).
+    *   Open the **flow runs history** for the specific flow (accessible from the flow details page or the solution view).
+    *   Click on a specific run (Succeeded or Failed) to examine the inputs and outputs of each action step. This is crucial for debugging logic errors.
+    *   Check for failed runs and carefully read the error messages provided in the failed action step.
+3.  **Data:**
+    *   Directly inspect the **Dev SharePoint lists** (`APH_PurchaseRequests`, `APH_FundingLines`, `APH_Approvals`, etc.) to verify data is being created, updated, or deleted as expected by your app and flows. Check column values for correctness.
+4.  **Test Data:**
+    *   Use the master lists (Vendors, Locations, etc.) in the Dev SharePoint site. Ensure they contain varied data for testing different scenarios (e.g., active/inactive vendors, different object codes).
+    *   Create test `APH_PurchaseRequests` via the Canvas app (running in Dev) logged in as a user belonging to the `APH_Requestors` AAD group.
+    *   Follow scenarios outlined in the "UAT Test Plan" document within the Dev environment for initial developer testing before creating a Pull Request.
 
 ---
 
 **7. Communication & Support**
 
-* **Daily Updates:** Provide brief progress updates (e.g., via Teams chat, stand-up meeting).
-* **Weekly Demo:** Prepare to present current state/progress to Phillip (or Lead).
-* **Questions:** Don't hesitate to ask! Use the designated Teams channel or approach the Lead Developer/Admin. Clearly describe the issue and what you've tried.
-* **Key Contacts:**
-  * Lead Developer: [Name/Contact]
-  * Power Platform Admin: [Name/Contact]
-  * SharePoint Admin: [Name/Contact]
+*   **Daily Updates:** Provide brief progress updates on your assigned tasks (e.g., via Teams chat, daily stand-up meeting, project board update). Mention any blockers.
+*   **Weekly Demo:** Be prepared to demonstrate the features or fixes you've completed during the week to Phillip (or the designated Lead/Stakeholder).
+*   **Questions & Blockers:** Don't stay stuck! Ask questions promptly. Use the designated project Teams channel or approach the Lead Developer/Admin directly. Clearly describe the issue, what you expected, what actually happened, and what troubleshooting steps you've already tried.
+*   **Key Contacts:**
+    *   Lead Developer / Mentor: [Name/Contact Method]
+    *   Power Platform Admin: [Name/Contact Method]
+    *   SharePoint Admin: [Name/Contact Method]
+    *   Business Analyst / Product Owner: [Name/Contact Method]
 
 ---
 
 **8. Basic Glossary**
 
-* **PAC CLI:** Power Platform Command Line Interface. Tool for interacting with environments, solutions, etc.
-* **Solution:** A container for Power Platform components (apps, flows, tables, env vars) managed as a single unit.
-* **Managed Solution:** A packaged solution intended for deployment to Test/Prod environments. Components cannot typically be edited directly. Used for distributing completed applications.
-* **Unmanaged Solution:** A solution open for development. All components can be edited. Used in Development environments.
-* **Environment Variable:** A solution component holding configuration data (like URLs, settings) that can vary between environments (Dev/Test/Prod).
-* **Connection Reference:** A solution component that points to a specific Connection (like SharePoint or Outlook) allowing flows/apps to work across environments without modification, provided the connection is configured post-import.
-* **PnP PowerShell:** A library for managing SharePoint artifacts via PowerShell scripts.
-* **GitFlow:** A branching model for Git version control.
+*   **PAC CLI:** Power Platform Command Line Interface. A command-line tool for developers and admins to manage environments, solutions, code components, etc.
+*   **Solution:** A container in Power Platform used to package and manage related components (like apps, flows, tables, environment variables) as a single unit for development and deployment.
+*   **Managed Solution:** A packaged, locked solution intended for deployment to Test/Prod environments. Its components generally cannot be edited directly in the target environment, ensuring consistency.
+*   **Unmanaged Solution:** A solution that is open for development. Components can be added, removed, and edited. Used in Development environments.
+*   **Environment Variable:** A solution component that stores configuration data (like URLs, API keys, settings) whose value can differ between environments (Dev/Test/Prod). Values are set *after* solution import.
+*   **Connection Reference:** A solution component acting as a placeholder for a connection (like SharePoint, Outlook). It allows flows/apps to be moved between environments without modification, as the reference is pointed to the correct environment-specific connection *after* import.
+*   **PnP PowerShell:** A popular open-source PowerShell library for interacting with and managing SharePoint Online (and other M365 services). Used here for extracting list schemas.
+*   **Git:** A distributed version control system used to track changes in source code during software development. Essential for collaboration and managing code history.
+*   **Git Repository (Repo):** A central location (like on GitHub, Azure Repos) where the project's Git-tracked files and history are stored.
+*   **YAML:** "YAML Ain't Markup Language". A human-readable data serialization standard, used here as the source format for unpacked Canvas Apps.
+*   **Pull Request (PR):** A process in Git collaboration where a developer asks for changes from their branch to be merged into another branch (e.g., `develop` or `main`), allowing for code review.
+
+---
 
 
 **APH Purchasing App – Overall Architecture**
