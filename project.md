@@ -308,7 +308,8 @@ graph LR
     %% Approval Flow / View Flow
     Dashboard -- "Select Pending Approval" --> Approval
     Dashboard -- "Select My Request" --> Approval
-    linkStyle 11 stroke-dasharray: 5,5;  %% Dashed line for view-only ("Select My Request")
+    %% Style the "Select My Request" link (index 11) as dashed for view-only indication
+    linkStyle 11 stroke-dasharray: 5,5;
 
     Approval -- "Approve/Deny/Revise Action" --> Dashboard
     Dashboard -- "Show Action Notification" --> Dashboard
@@ -316,7 +317,6 @@ graph LR
     %% Admin Flow
     Dashboard -- "Admin Link (if Admin)" --> AdminScreen
     AdminScreen -- "Navigate Back/Save" --> Dashboard
-
 ```
 
 **Key Screens:**
