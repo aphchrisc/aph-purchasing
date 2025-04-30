@@ -281,44 +281,43 @@ Users interact via a Canvas App featuring a consistent layout (Header, Footer, C
 
 ```mermaid
 graph LR
-    %% -------------------- ROLES --------------------
-    subgraph "User Roles"
-        Requestor --- Dashboard
-        Approver --- Dashboard
-        Admin --- Dashboard
-    end
+%% ---------- ROLES ----------
+subgraph "User Roles"
+    Requestor --- Dashboard
+    Approver  --- Dashboard
+    Admin     --- Dashboard
+end
 
-    %% -------------------- SCREENS -------------------
-    subgraph "App Screens"
-        Dashboard["Dashboard Screen"]
-        Request1["Screen_RequestForm_Step1 Basic Info"]
-        Request2["Screen_RequestForm_Step2 Funding Lines"]
-        Request3["Screen_RequestForm_Step3 Review & Submit"]
-        Approval["Screen_ApprovalDetail: View & Action"]
-        AdminScreen["Screen_Admin: Master Data Mgmt"]
-    end
+%% ---------- SCREENS ----------
+subgraph "App Screens"
+    Dashboard   ["Dashboard Screen"]
+    Request1    ["Screen_RequestForm_Step1 Basic Info"]
+    Request2    ["Screen_RequestForm_Step2 Funding Lines"]
+    Request3    ["Screen_RequestForm_Step3 Review & Submit"]
+    Approval    ["Screen_ApprovalDetail: View & Action"]
+    AdminScreen ["Screen_Admin: Master Data Mgmt"]
+end
 
-    %% -------------------- FLOW ----------------------
-    Dashboard -- "New Request" --> Request1
-    Request1 -- "Next" --> Request2
-    Request2 -- "Back" --> Request1
-    Request2 -- "Next (with lines)" --> Request3
-    Request3 -- "Back" --> Request2
-    Request3 -- "Submit" --> Dashboard
-    Dashboard -- "Show Success Notification" --> Dashboard
+%% ---------- FLOW ----------
+Dashboard  -- "New Request"              --> Request1
+Request1   -- "Next"                     --> Request2
+Request2   -- "Back"                     --> Request1
+Request2   -- "Next (with lines)"        --> Request3
+Request3   -- "Back"                     --> Request2
+Request3   -- "Submit"                   --> Dashboard
+Dashboard  -- "Show Success Notification"--> Dashboard
 
-    Dashboard -- "Select Pending Approval" --> Approval
-    Dashboard -- "Select My Request" --> Approval   %% link index 11
+Dashboard  -- "Select Pending Approval"  --> Approval
+Dashboard  -- "Select My Request"        --> Approval
 
-    %% Dashed line for the “view-only” link above
-    linkStyle 11 stroke-dasharray: 5 5
+%% dashed style for the “Select My Request” link (edge index 11)
+linkStyle 11 stroke-dasharray: 5 5
 
-    Approval -- "Approve/Deny/Revise Action" --> Dashboard
-    Dashboard -- "Show Action Notification" --> Dashboard
+Approval   -- "Approve/Deny/Revise Action" --> Dashboard
+Dashboard  -- "Show Action Notification"    --> Dashboard
 
-    Dashboard -- "Admin Link (if Admin)" --> AdminScreen
-    AdminScreen -- "Navigate Back/Save" --> Dashboard
-
+Dashboard  -- "Admin Link (if Admin)" --> AdminScreen
+AdminScreen -- "Navigate Back/Save"   --> Dashboard
 
 ```
 
