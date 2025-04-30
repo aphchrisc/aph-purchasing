@@ -306,13 +306,15 @@ graph LR
 
     Dashboard -- "Select Pending Approval" --> Approval
     Dashboard -- "Select My Request" --> Approval
-    linkStyle 11 stroke-dasharray: 5,5;  %% Dashed line for view-only potential
+    %% Dashed line for view-only potential
+    linkStyle 11 stroke-dasharray: 5,5
 
     Approval -- "Approve/Deny/Revise Action" --> Dashboard
     Dashboard -- "Show Action Notification" --> Dashboard
 
     Dashboard -- "Admin Link (if Admin)" --> AdminScreen
     AdminScreen -- "Navigate Back/Save" --> Dashboard
+
 ```
 
 **Key Screens:**
