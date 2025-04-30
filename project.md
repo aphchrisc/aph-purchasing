@@ -177,9 +177,6 @@ Your typical workflow will involve:
 * **PnP PowerShell:** A library for managing SharePoint artifacts via PowerShell scripts.
 * **GitFlow:** A branching model for Git version control.
 
---- END OF FILE 1 ---
-
---- START OF FILE 2: APH Purchasing App – Overall Architecture ---
 
 **APH Purchasing App – Overall Architecture**
 *This document provides a comprehensive overview of how all components—data, UI, and automation—work together to drive the APH Purchasing solution.*
